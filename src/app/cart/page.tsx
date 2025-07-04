@@ -60,7 +60,7 @@ export default function CartPage() {
     </section>
   );
 
-  if (cart.items.length === 0) {
+  if ((cart.items || []).length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-white py-8">
         <Hero />
@@ -172,7 +172,7 @@ export default function CartPage() {
             >
               <div className="p-6 border-b border-orange-100 flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-orange-700">
-                  Cart Items ({cart.items.length})
+                  Cart Items ({(cart.items || []).length})
                 </h2>
                 <motion.button
                   onClick={clearCartItems}
@@ -185,7 +185,7 @@ export default function CartPage() {
               </div>
               <div className="divide-y divide-orange-100">
                 <AnimatePresence>
-                  {cart.items.map((item, index) => (
+                  {(cart.items || []).map((item, index) => (
                     <motion.div 
                       key={item.id} 
                       className="p-6"

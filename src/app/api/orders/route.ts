@@ -71,7 +71,7 @@ export async function GET() {
   return NextResponse.json(orders);
 }
 
-// POST /api/orders – create order from current cart { address? }
+// POST /api/orders – create order from current cart { address?, paymentMethod? }
 export async function POST(req: Request) {
   const user = await getUser();
   if (!user) return new NextResponse('Unauthorized', { status: 401 });
@@ -85,8 +85,9 @@ export async function POST(req: Request) {
     return new NextResponse('Cart is empty', { status: 400 });
   }
 
-  // Capture address if provided
-  const { address } = (await req.json().catch(() => ({}))) as { address?: string };
+  // Capture address and paymentMethod if provided
+  const { address, paymentMethod } = (await req.json().catch(() => ({}))) as { address?: string, paymentMethod?: string };
+  const paymentMethodValue = paymentMethod === 'COD' ? 'COD' : 'CREDIT_CARD';
 
   // Calculate total
   const total = cart.items.reduce((sum: number, item: CartItemWithProduct) => sum + item.product.price * item.quantity, 0);
@@ -98,6 +99,7 @@ export async function POST(req: Request) {
           userId: user.id,
           total,
           status: 'PENDING',
+          paymentMethod: paymentMethodValue,
         },
       });
 

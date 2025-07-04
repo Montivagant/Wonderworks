@@ -105,6 +105,8 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'CREDIT_CARD' | 'COD'>('CREDIT_CARD');
+  const [codSuccess, setCodSuccess] = useState(false);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -155,6 +157,27 @@ export default function CheckoutPage() {
     router.push('/orders');
   };
 
+  // COD order handler
+  const handleCodOrder = async () => {
+    setLoading(true);
+    try {
+      const orderRes = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, paymentMethod: 'COD' }),
+      });
+      if (!orderRes.ok) throw new Error('Failed to create order');
+      await clearCartItems();
+      setCodSuccess(true);
+      toast.success('Order placed successfully!');
+      setTimeout(() => router.push('/orders'), 2000);
+    } catch (error) {
+      toast.error('Failed to place order. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!session?.user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 flex items-center justify-center">
@@ -166,11 +189,22 @@ export default function CheckoutPage() {
     );
   }
 
+  if (codSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="bg-white p-8 rounded-xl shadow-md text-center">
+          <h2 className="text-2xl font-bold mb-4 text-green-600">Order Placed!</h2>
+          <p className="mb-2">Thank you for your order. Please prepare payment upon delivery.</p>
+          <p className="text-gray-500">Redirecting to your orders...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold mb-6 text-gray-900">Checkout</h1>
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Shipping Address */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -206,15 +240,52 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+            {/* Payment Method Selection */}
+            <div className="mb-6">
+              <h3 className="font-semibold mb-2">Payment Method</h3>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="CREDIT_CARD"
+                    checked={paymentMethod === 'CREDIT_CARD'}
+                    onChange={() => setPaymentMethod('CREDIT_CARD')}
+                  />
+                  <span>Credit Card (Online Payment)</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="COD"
+                    checked={paymentMethod === 'COD'}
+                    onChange={() => setPaymentMethod('COD')}
+                  />
+                  <span>Cash on Delivery</span>
+                </label>
+              </div>
+            </div>
+
             {/* Payment Section */}
             {address.trim() ? (
-              <Elements stripe={stripePromise}>
-                <PaymentForm 
-                  total={total} 
-                  address={address} 
-                  onSuccess={handlePaymentSuccess}
-                />
-              </Elements>
+              paymentMethod === 'CREDIT_CARD' ? (
+                <Elements stripe={stripePromise}>
+                  <PaymentForm 
+                    total={total} 
+                    address={address} 
+                    onSuccess={handlePaymentSuccess}
+                  />
+                </Elements>
+              ) : (
+                <button
+                  className={`w-full py-3 rounded-lg text-white font-medium transition-colors ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600'}`}
+                  onClick={handleCodOrder}
+                  disabled={loading}
+                >
+                  {loading ? 'Placing Order...' : `Place Order (Cash on Delivery)`}
+                </button>
+              )
             ) : (
               <div className="text-center py-4">
                 <p className="text-gray-600 mb-4">

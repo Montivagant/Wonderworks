@@ -18,6 +18,8 @@ interface SearchAndFilterProps {
     maxPrice: number;
     rating: number;
   };
+  onSortChange?: (sort: string) => void;
+  sortBy?: string;
 }
 
 export default function SearchAndFilter({
@@ -28,6 +30,8 @@ export default function SearchAndFilter({
   onClearFilters,
   categories,
   currentFilters,
+  onSortChange,
+  sortBy,
 }: SearchAndFilterProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(currentFilters.query);
@@ -175,7 +179,7 @@ export default function SearchAndFilter({
             exit={{ opacity: 0, height: 0 }}
             className="border-t border-gray-200 pt-6"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {/* Category Filter */}
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-3">
@@ -242,6 +246,23 @@ export default function SearchAndFilter({
                     </button>
                   ))}
                 </div>
+              </div>
+              {/* Sort Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-3">
+                  Sort By
+                </label>
+                <select
+                  value={sortBy || 'name'}
+                  onChange={(e) => onSortChange && onSortChange(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 hover:bg-white transition-colors duration-200 text-gray-900"
+                  aria-label="Sort products"
+                >
+                  <option value="name">Name</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="rating">Rating</option>
+                </select>
               </div>
             </div>
           </motion.div>

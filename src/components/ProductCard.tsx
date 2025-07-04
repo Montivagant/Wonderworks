@@ -16,19 +16,22 @@ import {
 import { getImageWithFallback, sanitizeImageUrl, debugImage } from '@/utils/imageUtils';
 import { Product } from '@/types';
 import { useWishlist } from '@/contexts/WishlistContext';
+import { useCart } from '@/contexts/CartContext';
 
 interface ProductCardProps {
   product: Product;
   onAddToCart?: (product: Product) => Promise<void>;
   priority?: boolean;
   viewMode?: 'grid' | 'list';
+  cart?: { items: any[] };
 }
 
-export default function ProductCard({ product, onAddToCart, priority = false, viewMode = 'grid' }: ProductCardProps) {
+export default function ProductCard({ product, onAddToCart, priority = false, viewMode = 'grid', cart }: ProductCardProps) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [imageError, setImageError] = React.useState(false);
   const [imageSrc, setImageSrc] = React.useState<string>('/placeholder.svg');
   const { addToWishlist, removeFromWishlist, isInWishlist, isAuthenticated } = useWishlist();
+  const { updateQuantity, removeItem } = useCart();
   
   // NEW: helper to detect data URLs
   const isDataUrl = React.useCallback((src: string | undefined) => src?.startsWith('data:image'), []);
@@ -63,7 +66,6 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
       setIsLoading(true);
       try {
         await onAddToCart(product);
-        toast.success(`${product.name} added to cart!`);
       } catch (error) {
         console.error('Error adding to cart:', error);
         toast.error('Failed to add item to cart');
@@ -87,6 +89,9 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
   };
 
   const isWishlisted = isInWishlist(product.id);
+
+  // Find if product is in cart
+  const cartItem = cart?.items?.find?.((item: any) => item.productId === product.id);
 
   return (
     <motion.div
@@ -260,33 +265,59 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
           </motion.div>
         )}
 
-        {/* Add to Cart Button */}
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          onClick={handleAddToCart}
-          disabled={isLoading || product.inStock === false}
-          className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 transform mt-auto ${
-            isLoading || product.inStock === false
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 active:scale-95 shadow-md hover:shadow-lg'
-          }`}
-        >
-          {isLoading ? (
-            <div className="flex items-center justify-center">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-              Adding...
-            </div>
-          ) : product.inStock === false ? (
-            'Out of Stock'
-          ) : (
-            <div className="flex items-center justify-center">
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              Add to Cart
-            </div>
-          )}
-        </motion.button>
+        {/* Add to Cart Button or Quantity Controls */}
+        {cartItem ? (
+          <div className="w-full flex items-center gap-2 mt-auto">
+            <button
+              className="px-3 py-2 rounded-lg bg-orange-100 text-orange-700 font-bold border border-orange-200 hover:bg-orange-200 transition"
+              onClick={() => {
+                if (cartItem.quantity <= 1) {
+                  removeItem(product.id);
+                } else {
+                  updateQuantity(product.id, cartItem.quantity - 1);
+                }
+              }}
+            >
+              -
+            </button>
+            <span className="min-w-[2.5rem] text-center font-semibold text-orange-700 bg-orange-50 rounded-lg px-2 py-2 border border-orange-100">
+              {cartItem.quantity}
+            </span>
+            <button
+              className="px-3 py-2 rounded-lg bg-orange-100 text-orange-700 font-bold border border-orange-200 hover:bg-orange-200 transition"
+              onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}
+            >
+              +
+            </button>
+          </div>
+        ) : (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            onClick={handleAddToCart}
+            disabled={isLoading || product.inStock === false}
+            className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 transform mt-auto ${
+              isLoading || product.inStock === false
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 active:scale-95 shadow-md hover:shadow-lg'
+            }`}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                Adding...
+              </div>
+            ) : product.inStock === false ? (
+              'Out of Stock'
+            ) : (
+              <div className="flex items-center justify-center">
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                Add to Cart
+              </div>
+            )}
+          </motion.button>
+        )}
       </div>
     </motion.div>
   );

@@ -56,6 +56,15 @@ const calculateCartTotals = (items: Cart['items']): { total: number; itemCount: 
   return { total, itemCount };
 };
 
+// Utility to coerce any cart-like object to a valid Cart
+function ensureValidCart(cart: any): Cart {
+  return {
+    items: Array.isArray(cart?.items) ? cart.items : [],
+    total: typeof cart?.total === 'number' ? cart.total : 0,
+    itemCount: typeof cart?.itemCount === 'number' ? cart.itemCount : 0,
+  };
+}
+
 const fetcher = async (url: string): Promise<Cart> => {
   console.log('🛒 [CartContext] Fetching cart from:', url);
   const res = await fetch(url, { credentials: 'include' });
@@ -71,9 +80,10 @@ const fetcher = async (url: string): Promise<Cart> => {
     throw new Error('Failed to fetch cart');
   }
   
-  const cartData = await res.json();
+  const apiData = await res.json();
+  const cartData = apiData?.cart;
   console.log('🛒 [CartContext] Cart data received:', cartData);
-  return cartData;
+  return ensureValidCart(cartData ?? EMPTY_CART);
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -88,7 +98,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Load temp cart from localStorage on mount
   useEffect(() => {
     if (status === 'unauthenticated') {
-      const stored = getTempCart();
+      const stored = ensureValidCart(getTempCart());
       setTempCartState(stored);
       console.log('🛒 [CartContext] Loaded temp cart from localStorage:', stored);
     }
@@ -150,7 +160,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [tempCart, status]);
 
   // Use server cart if authenticated, temp cart if not
-  const cart = status === 'authenticated' ? serverCart : tempCart;
+  const cart = ensureValidCart(status === 'authenticated' ? serverCart : tempCart);
   const isAuthenticated = status === 'authenticated';
 
   console.log('🛒 [CartContext] Current cart state:', cart);

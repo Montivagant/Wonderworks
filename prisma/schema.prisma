@@ -12,7 +12,6 @@ model Product {
   name        String
   price       Float
   image       String?
-  category    String
   rating      Float     @default(0)
   description String?
   inStock     Boolean   @default(true)
@@ -22,6 +21,9 @@ model Product {
   orderItems  OrderItem[]
   cartItems   CartItem[]
   wishlistItems WishlistItem[]
+  nameAr      String? // Arabic name for localization
+  categoryId  Int?
+  category    Category? @relation(fields: [categoryId], references: [id])
   createdAt   DateTime  @default(now())
 }
 
@@ -71,6 +73,7 @@ model Order {
   userId    Int
   total     Float
   status    OrderStatus @default(PENDING)
+  paymentMethod PaymentMethod @default(COD)
   createdAt DateTime @default(now())
   items     OrderItem[]
 }
@@ -220,4 +223,24 @@ enum AddressType {
   HOME
   WORK
   OTHER
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String
+  nameAr      String?
+  slug        String   @unique
+  description String?
+  image       String?
+  products    Product[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum PaymentMethod {
+  COD
+  CREDIT_CARD
+  FAWRY
+  VODAFONE_CASH
+  BANK_TRANSFER
 } 

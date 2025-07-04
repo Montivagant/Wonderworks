@@ -454,3 +454,46 @@ npm run dev
 
 **Last Updated**: January 2025  
 **Status**: Production Ready with Complete Design System ✅ 
+
+## How to Push This Project to GitHub
+
+1. Open a terminal and navigate to your project root:
+   ```powershell
+   cd D:\wonderworks\wonderworks
+   ```
+2. Initialize git (if not already):
+   ```powershell
+   git init
+   ```
+3. Add all files:
+   ```powershell
+   git add .
+   ```
+4. Commit your files:
+   ```powershell
+   git commit -m "Initial commit"
+   ```
+5. Set your name and email (if prompted):
+   ```powershell
+   git config --global user.name "Your Name"
+   git config --global user.email "your@email.com"
+   ```
+6. Add your GitHub remote (replace with your repo URL):
+   ```powershell
+   git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+   ```
+7. Set the branch to main:
+   ```powershell
+   git branch -M main
+   ```
+8. Push to GitHub:
+   ```powershell
+   git push -u origin main
+   ```
+
+For future changes, use:
+```powershell
+git add .
+git commit -m "Describe your changes"
+git push
+``` 

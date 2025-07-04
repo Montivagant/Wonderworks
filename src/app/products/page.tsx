@@ -15,7 +15,7 @@ import { ShoppingBag, Filter, Grid, List, Sparkles, Search } from 'lucide-react'
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export default function ProductsPage() {
-  const { addItem } = useCart();
+  const { addItem, cart } = useCart();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('name');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -236,6 +236,9 @@ export default function ProductsPage() {
     });
   }, []);
 
+  // Add a handler for sort change
+  const handleSortChange = useCallback((sort: string) => setSortBy(sort), []);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -282,22 +285,37 @@ export default function ProductsPage() {
           </p>
         </motion.div>
 
-        {/* Advanced Search and Filter */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <SearchAndFilter
-            onSearchChange={handleSearchChange}
-            onCategoryChange={handleCategoryChange}
-            onPriceRangeChange={handlePriceRangeChange}
-            onRatingChange={handleRatingChange}
-            onClearFilters={handleClearFilters}
-            categories={availableCategories}
-            currentFilters={filters}
-          />
-        </motion.div>
+        {/* Quick Category Bubbles */}
+        <div className="flex flex-wrap gap-3 mb-6">
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => setFilters((prev) => ({ ...prev, category: category.id === 'all' ? '' : category.id }))}
+              className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 ${
+                filters.category === category.id || (category.id === 'all' && !filters.category)
+                  ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
+              }`}
+              aria-pressed={filters.category === category.id || (category.id === 'all' && !filters.category)}
+            >
+              <category.icon className="w-4 h-4" />
+              {category.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Enhanced Search and Filter */}
+        <SearchAndFilter
+          onSearchChange={handleSearchChange}
+          onCategoryChange={(cat) => setFilters((prev) => ({ ...prev, category: cat }))}
+          onPriceRangeChange={(min, max) => setFilters((prev) => ({ ...prev, minPrice: min, maxPrice: max }))}
+          onRatingChange={(rating) => setFilters((prev) => ({ ...prev, rating }))}
+          onClearFilters={handleClearFilters}
+          categories={availableCategories}
+          currentFilters={filters}
+          onSortChange={handleSortChange}
+          sortBy={sortBy}
+        />
 
         {/* Legacy Filters */}
         <motion.div
@@ -445,6 +463,7 @@ export default function ProductsPage() {
                     product={processedProduct} 
                     onAddToCart={handleAddToCart}
                     viewMode={viewMode}
+                    cart={cart}
                   />
                 </motion.div>
               );
