@@ -47,6 +47,16 @@
 ## Analytics & Counters
 - All counters and analytics exclude archived/out-of-stock products for accuracy.
 
+## Bulk Action Patterns
+- All admin tables support selecting multiple items and performing bulk actions (delete, update, etc.) using checkboxes and a select-all option.
+
+## Password Field UX
+- All password and password confirmation fields use an eye icon toggle for visibility.
+- Example: <input type={showPassword ? 'text' : 'password'} ... />
+
+## Modal Accessibility
+- All modals must have a clear exit/okay button and support closing with the ESC key for accessibility.
+
 ## Directory Usage
 - All scripts/commands must be run from `D:\wonderworks\wonderworks`.
 

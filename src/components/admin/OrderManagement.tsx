@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -52,8 +52,54 @@ export default function OrderManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [selectedOrders, setSelectedOrders] = useState<number[]>([]);
 
   const { data: orderData, mutate } = useSWR<OrderResponse>(`/api/admin/orders?page=${currentPage}&limit=10`, fetcher);
+
+  const visibleOrderIds = useMemo(() => orderData?.orders.map(o => o.id) || [], [orderData]);
+  const allSelected = selectedOrders.length > 0 && visibleOrderIds.every(id => selectedOrders.includes(id));
+  const someSelected = selectedOrders.length > 0 && !allSelected;
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedOrders([]);
+    } else {
+      setSelectedOrders(visibleOrderIds);
+    }
+  };
+
+  const toggleSelectOrder = (id: number) => {
+    setSelectedOrders(prev => prev.includes(id) ? prev.filter(oid => oid !== id) : [...prev, id]);
+  };
+
+  const clearSelection = () => setSelectedOrders([]);
+
+  const handleBulkAction = async (action: 'cancel' | 'delete' | 'markShipped' | 'markDelivered') => {
+    if (selectedOrders.length === 0) return;
+    setIsUpdating(true);
+    try {
+      let url = '/api/admin/orders/bulk';
+      let method = 'POST';
+      let body: any = { ids: selectedOrders, action };
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (response.ok) {
+        toast.success(`Bulk ${action} successful`);
+        mutate();
+        clearSelection();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || errorData.details || errorData.message || `Bulk ${action} failed`);
+      }
+    } catch (error) {
+      toast.error(`Bulk ${action} failed`);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const updateOrderStatus = async (orderId: number, newStatus: string) => {
     setIsUpdating(true);
@@ -162,6 +208,16 @@ export default function OrderManagement() {
             <table className="min-w-full divide-y divide-neutral-200">
               <thead className="bg-neutral-50">
                 <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      ref={el => { if (el) el.indeterminate = someSelected; }}
+                      onChange={toggleSelectAll}
+                      aria-label="Select all orders"
+                      className="accent-primary-600"
+                    />
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">
                     Order ID
                   </th>
@@ -196,6 +252,15 @@ export default function OrderManagement() {
                       transition={{ delay: index * 0.05 }}
                       className="hover:bg-neutral-50"
                     >
+                      <td className="px-4 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedOrders.includes(order.id)}
+                          onChange={() => toggleSelectOrder(order.id)}
+                          aria-label={`Select order #${order.id}`}
+                          className="accent-primary-600"
+                        />
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
                         #{order.id}
                       </td>
@@ -338,6 +403,66 @@ export default function OrderManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* Bulk Actions */}
+      {selectedOrders.length > 0 && (
+        <div className="bg-neutral-50 px-4 py-3 flex items-center justify-between border-t border-neutral-200 sm:px-6">
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleBulkAction('cancel')}
+              disabled={selectedOrders.length === 0 || isUpdating}
+            >
+              Cancel Orders
+              {selectedOrders.length > 0 && (
+                <span className="ml-2 text-xs text-neutral-500">({selectedOrders.length})</span>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleBulkAction('markShipped')}
+              disabled={selectedOrders.length === 0 || isUpdating}
+            >
+              Mark as Shipped
+              {selectedOrders.length > 0 && (
+                <span className="ml-2 text-xs text-neutral-500">({selectedOrders.length})</span>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleBulkAction('markDelivered')}
+              disabled={selectedOrders.length === 0 || isUpdating}
+            >
+              Mark as Delivered
+              {selectedOrders.length > 0 && (
+                <span className="ml-2 text-xs text-neutral-500">({selectedOrders.length})</span>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleBulkAction('delete')}
+              disabled={selectedOrders.length === 0 || isUpdating}
+            >
+              Delete Orders
+              {selectedOrders.length > 0 && (
+                <span className="ml-2 text-xs text-neutral-500">({selectedOrders.length})</span>
+              )}
+            </Button>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearSelection}
+            className="text-neutral-600 hover:text-neutral-900"
+          >
+            Clear Selection
+          </Button>
+        </div>
+      )}
 
       {/* Order Detail Modal */}
       <AnimatePresence>

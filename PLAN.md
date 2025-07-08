@@ -12,6 +12,9 @@
 - **Authentication**: Combined login/signup page with Google/Facebook social logins, unified error messages, and automated password hashing via Prisma middleware (no plain text passwords, ever).
 - **Analytics**: All counters and analytics exclude archived/out-of-stock products for accuracy.
 - **Directory Usage**: All scripts/commands must be run from `D:\wonderworks\wonderworks`.
+- **Bulk Actions**: Admin dashboard supports selecting multiple products, users, orders, or categories for batch operations (delete, update, etc.).
+- **Password Visibility Toggle**: Eye icon in password and password confirmation fields for login/register.
+- **Improved Modal UX**: All modals have clear exit/okay buttons and ESC key support.
 
 ## Roadmap & Priorities
 1. **Audit & Refactor**
@@ -55,5 +58,8 @@ For implementation details, see `DEVELOPMENT.md` and `README.md`.
 | 6 | Sweep for inline styles / hard-coded colours, migrate to Tailwind arbitrary values or CSS vars | dev | pending |
 | 7 | Implement central CSS variable map for theme tokens | dev | pending |
 | 8 | Verify admin controls cover all necessary customer features | dev | pending |
+| 9 | Implement bulk actions for products, users, orders, categories | dev | completed |
+| 10 | Add password visibility toggle to login/register | dev | completed |
+| 11 | Improve modal accessibility (exit/okay button, ESC support) | dev | completed |
 
 Progress on these items is tracked in `docs/ROADMAP.md` and in-code TODO markers. 

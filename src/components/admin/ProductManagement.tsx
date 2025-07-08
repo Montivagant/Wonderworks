@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import useSWR, { mutate as globalMutate } from 'swr';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
@@ -57,6 +57,7 @@ export default function ProductManagement() {
   const [deleteBlocked, setDeleteBlocked] = useState<{blocked: boolean, reason?: string, product?: Product} | null>(null);
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
+  const [showNoCategoryModal, setShowNoCategoryModal] = useState(false);
   
   const [form, setForm] = useState({
     name: '',
@@ -233,12 +234,78 @@ export default function ProductManagement() {
     }
   };
 
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+
+  // Memoized list of visible product IDs
+  const visibleProductIds = useMemo(() => filtered.map(p => p.id), [filtered]);
+
+  const allSelected = selectedProducts.length > 0 && visibleProductIds.every(id => selectedProducts.includes(id));
+  const someSelected = selectedProducts.length > 0 && !allSelected;
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedProducts([]);
+    } else {
+      setSelectedProducts(visibleProductIds);
+    }
+  };
+
+  const toggleSelectProduct = (id: number) => {
+    setSelectedProducts(prev => prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]);
+  };
+
+  const clearSelection = () => setSelectedProducts([]);
+
   const handleBulkAction = async (action: 'delete' | 'feature' | 'unfeature') => {
-    // Implement bulk actions
-    toast(`Bulk ${action} functionality coming soon`, { icon: 'ℹ️' });
+    if (selectedProducts.length === 0) return;
+    setLoading(true);
+    try {
+      let url = '/api/admin/products/bulk';
+      let method = 'POST';
+      let body: any = { ids: selectedProducts, action };
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (response.ok) {
+        toast.success(`Bulk ${action} successful`);
+        mutate();
+        globalMutate('/api/products');
+        globalMutate('/api/categories');
+        clearSelection();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || errorData.details || errorData.message || `Bulk ${action} failed`);
+      }
+    } catch (error) {
+      toast.error(`Bulk ${action} failed`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const noCategories = !categories || categories.length === 0;
+
+  useEffect(() => {
+    if (creating && noCategories) {
+      setShowNoCategoryModal(true);
+    }
+  }, [creating, noCategories]);
+
+  const closeNoCategoryModal = useCallback(() => {
+    setShowNoCategoryModal(false);
+    setCreating(false);
+  }, []);
+
+  useEffect(() => {
+    if (!showNoCategoryModal) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeNoCategoryModal();
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [showNoCategoryModal, closeNoCategoryModal]);
 
   return (
     <div className="max-w-7xl mx-auto py-8">
@@ -281,13 +348,19 @@ export default function ProductManagement() {
               ))}
             </select>
             <div className="flex space-x-2">
-              <Button variant="outline" size="sm" onClick={() => handleBulkAction('delete')}>
+              <Button variant="outline" size="sm" onClick={() => handleBulkAction('delete')} disabled={selectedProducts.length === 0 || loading}>
                 <Trash2 className="w-4 h-4 mr-2" />
                 Bulk Delete
+                {selectedProducts.length > 0 && (
+                  <span className="ml-2 text-xs text-neutral-500">({selectedProducts.length})</span>
+                )}
               </Button>
-              <Button variant="outline" size="sm" onClick={() => handleBulkAction('feature')}>
+              <Button variant="outline" size="sm" onClick={() => handleBulkAction('feature')} disabled={selectedProducts.length === 0 || loading}>
                 <Star className="w-4 h-4 mr-2" />
                 Bulk Feature
+                {selectedProducts.length > 0 && (
+                  <span className="ml-2 text-xs text-neutral-500">({selectedProducts.length})</span>
+                )}
               </Button>
             </div>
             <div className="flex items-center gap-2">
@@ -319,6 +392,16 @@ export default function ProductManagement() {
             <table className="min-w-full divide-y divide-neutral-200">
               <thead className="bg-neutral-50">
                 <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      ref={el => { if (el) el.indeterminate = someSelected; }}
+                      onChange={toggleSelectAll}
+                      aria-label="Select all products"
+                      className="accent-primary-600"
+                    />
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Product</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Category</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Price</th>
@@ -335,6 +418,15 @@ export default function ProductManagement() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                   >
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.includes(prod.id)}
+                        onChange={() => toggleSelectProduct(prod.id)}
+                        aria-label={`Select product ${prod.name}`}
+                        className="accent-primary-600"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <div className="w-12 h-12 bg-neutral-100 rounded-lg flex items-center justify-center mr-4">
@@ -442,7 +534,7 @@ export default function ProductManagement() {
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-neutral-500">
+                    <td colSpan={7} className="px-6 py-8 text-center text-neutral-500">
                       <div className="flex flex-col items-center">
                         <Package className="w-12 h-12 text-neutral-300 mb-4" />
                         <p className="text-lg font-medium text-neutral-700">No products found</p>
@@ -458,7 +550,7 @@ export default function ProductManagement() {
       </Card>
 
       {/* Create/Edit Form */}
-      {(creating || editing) && (
+      {(creating || editing) && !showNoCategoryModal && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -768,6 +860,15 @@ export default function ProductManagement() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {showNoCategoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-lg p-8 max-w-sm w-full text-center">
+            <p className="text-lg font-semibold text-error-600 mb-4">No categories found. Please create a category before adding a product.</p>
+            <Button onClick={closeNoCategoryModal} className="mt-2 w-full">Okay</Button>
+          </div>
         </div>
       )}
     </div>

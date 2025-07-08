@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
@@ -10,7 +10,8 @@ import {
   ShoppingCart, 
   Calendar,
   Search,
-  Filter
+  Filter,
+  Trash2
 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
@@ -46,6 +47,7 @@ export default function UserManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
 
   const { data: userData, mutate } = useSWR<UserResponse>(`/api/admin/users?page=${currentPage}&limit=10`, fetcher);
 
@@ -82,6 +84,48 @@ export default function UserManagement() {
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     return matchesSearch && matchesRole;
   }) || [];
+
+  const visibleUserIds = useMemo(() => filteredUsers.map(u => u.id), [filteredUsers]);
+  const allSelected = selectedUsers.length > 0 && visibleUserIds.every(id => selectedUsers.includes(id));
+  const someSelected = selectedUsers.length > 0 && !allSelected;
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedUsers([]);
+    } else {
+      setSelectedUsers(visibleUserIds);
+    }
+  };
+
+  const toggleSelectUser = (id: number) => {
+    setSelectedUsers(prev => prev.includes(id) ? prev.filter(uid => uid !== id) : [...prev, id]);
+  };
+
+  const clearSelection = () => setSelectedUsers([]);
+
+  const handleBulkAction = async (action: 'delete' | 'makeAdmin' | 'makeCustomer') => {
+    if (selectedUsers.length === 0) return;
+    try {
+      let url = '/api/admin/users/bulk';
+      let method = 'POST';
+      let body: any = { ids: selectedUsers, action };
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (response.ok) {
+        toast.success(`Bulk ${action} successful`);
+        mutate();
+        clearSelection();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || errorData.details || errorData.message || `Bulk ${action} failed`);
+      }
+    } catch (error) {
+      toast.error(`Bulk ${action} failed`);
+    }
+  };
 
   if (!userData) {
     return (
@@ -221,6 +265,16 @@ export default function UserManagement() {
             <table className="min-w-full divide-y divide-neutral-200">
               <thead className="bg-neutral-50">
                 <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      ref={el => { if (el) el.indeterminate = someSelected; }}
+                      onChange={toggleSelectAll}
+                      aria-label="Select all users"
+                      className="accent-primary-600"
+                    />
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">
                     User
                   </th>
@@ -247,6 +301,15 @@ export default function UserManagement() {
                     transition={{ delay: index * 0.05 }}
                     className="hover:bg-neutral-50"
                   >
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user.id)}
+                        onChange={() => toggleSelectUser(user.id)}
+                        aria-label={`Select user ${user.name || user.email}`}
+                        className="accent-primary-600"
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
@@ -351,6 +414,58 @@ export default function UserManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* Bulk Actions */}
+      {selectedUsers.length > 0 && (
+        <div className="bg-neutral-50 px-4 py-3 flex items-center justify-between border-t border-neutral-200 sm:px-6">
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleBulkAction('delete')}
+              disabled={selectedUsers.length === 0}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Bulk Delete
+              {selectedUsers.length > 0 && (
+                <span className="ml-2 text-xs text-neutral-500">({selectedUsers.length})</span>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleBulkAction('makeAdmin')}
+              disabled={selectedUsers.length === 0}
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              Make Admin
+              {selectedUsers.length > 0 && (
+                <span className="ml-2 text-xs text-neutral-500">({selectedUsers.length})</span>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleBulkAction('makeCustomer')}
+              disabled={selectedUsers.length === 0}
+            >
+              <User className="w-4 h-4 mr-2" />
+              Make Customer
+              {selectedUsers.length > 0 && (
+                <span className="ml-2 text-xs text-neutral-500">({selectedUsers.length})</span>
+              )}
+            </Button>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearSelection}
+            className="text-neutral-600 hover:text-neutral-900"
+          >
+            Clear Selection
+          </Button>
+        </div>
+      )}
     </div>
   );
 } 

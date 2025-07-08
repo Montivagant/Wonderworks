@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
@@ -38,9 +38,56 @@ export default function CategoryManagement() {
     description: ''
   });
 
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
   const filtered = (categories || []).filter(cat =>
     cat.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  const visibleCategoryIds = useMemo(() => filtered.map(c => c.id), [filtered]);
+  const allSelected = selectedCategories.length > 0 && visibleCategoryIds.every(id => selectedCategories.includes(id));
+  const someSelected = selectedCategories.length > 0 && !allSelected;
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedCategories([]);
+    } else {
+      setSelectedCategories(visibleCategoryIds);
+    }
+  };
+
+  const toggleSelectCategory = (id: string) => {
+    setSelectedCategories(prev => prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]);
+  };
+
+  const clearSelection = () => setSelectedCategories([]);
+
+  const handleBulkAction = async () => {
+    if (selectedCategories.length === 0) return;
+    setLoading(true);
+    try {
+      let url = '/api/admin/categories/bulk';
+      let method = 'POST';
+      let body: any = { ids: selectedCategories, action: 'delete' };
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (response.ok) {
+        toast.success('Bulk delete successful');
+        mutate();
+        clearSelection();
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || errorData.details || errorData.message || 'Bulk delete failed');
+      }
+    } catch (error) {
+      toast.error('Bulk delete failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const resetForm = () => {
     setForm({
@@ -178,6 +225,16 @@ export default function CategoryManagement() {
             <table className="min-w-full divide-y divide-neutral-200">
               <thead className="bg-neutral-50">
                 <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      ref={el => { if (el) el.indeterminate = someSelected; }}
+                      onChange={toggleSelectAll}
+                      aria-label="Select all categories"
+                      className="accent-primary-600"
+                    />
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Slug</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-neutral-700 uppercase tracking-wider">Description</th>
@@ -192,6 +249,15 @@ export default function CategoryManagement() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                   >
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(cat.id)}
+                        onChange={() => toggleSelectCategory(cat.id)}
+                        aria-label={`Select category ${cat.name}`}
+                        className="accent-primary-600"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <FolderOpen className="w-5 h-5 text-neutral-400 mr-3" />
@@ -241,6 +307,32 @@ export default function CategoryManagement() {
           </div>
         </CardContent>
       </Card>
+
+      {selectedCategories.length > 0 && (
+        <div className="bg-neutral-50 px-4 py-3 flex items-center justify-between border-t border-neutral-200 sm:px-6">
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBulkAction}
+              disabled={selectedCategories.length === 0 || loading}
+            >
+              Bulk Delete
+              {selectedCategories.length > 0 && (
+                <span className="ml-2 text-xs text-neutral-500">({selectedCategories.length})</span>
+              )}
+            </Button>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearSelection}
+            className="text-neutral-600 hover:text-neutral-900"
+          >
+            Clear Selection
+          </Button>
+        </div>
+      )}
 
       {/* Create/Edit Form */}
       {(creating || editing) && (

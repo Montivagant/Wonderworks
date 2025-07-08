@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRef } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 // Themed hero section component
 function Hero() {
@@ -67,6 +68,8 @@ export default function LoginPage() {
   // Add state for error message
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Redirect if already logged in
   if (session) {
@@ -183,29 +186,47 @@ export default function LoginPage() {
                 required
               />
             </div>
-            <div>
+            <div className="relative">
               <label className="block text-sm font-medium text-orange-700">Password</label>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full border border-orange-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800"
+                className="mt-1 block w-full border border-orange-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800 pr-12"
                 required
               />
+              <button
+                type="button"
+                tabIndex={-1}
+                className="absolute right-3 top-9 text-orange-400 hover:text-orange-600 focus:outline-none"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
               {mode === 'register' && (
                 <p className="mt-1 text-xs text-gray-500">Password must be at least 8 characters.</p>
               )}
             </div>
             {mode === 'register' && (
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium text-orange-700">Confirm Password</label>
                 <input
-                  type="password"
+                  type={showConfirm ? 'text' : 'password'}
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
-                  className="mt-1 block w-full border border-orange-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800"
+                  className="mt-1 block w-full border border-orange-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800 pr-12"
                   required
                 />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-3 top-9 text-orange-400 hover:text-orange-600 focus:outline-none"
+                  onClick={() => setShowConfirm((v) => !v)}
+                  aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             )}
             {error && (

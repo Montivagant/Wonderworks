@@ -54,8 +54,21 @@ toast.error(errorData.details || errorData.message || 'Failed to save product');
 ## Analytics & Counters
 - All counters and analytics exclude archived/out-of-stock products for accuracy.
 
-## Directory Usage
-- Always run scripts and commands from `D:\wonderworks\wonderworks`.
+## Bulk Actions
+- Use checkboxes and a "select all" option in admin tables to enable bulk actions (delete, update, etc.).
+- Bulk actions are available for products, users, orders, and categories.
 
----
-For the project overview and roadmap, see `README.md` and `PLAN.md`.
+## Password Visibility Toggle
+- Use an eye icon button to toggle password and password confirmation fields between text and password types.
+- Example:
+```tsx
+<input type={showPassword ? 'text' : 'password'} ... />
+<button onClick={() => setShowPassword(v => !v)}>{showPassword ? <EyeOff /> : <Eye />}</button>
+```
+
+## Modal Accessibility
+- All modals (e.g., "no categories" in product creation) must have a clear exit/okay button and support closing with the ESC key.
+- Use state to control modal visibility and add a keydown event listener for ESC.
+
+## Directory Usage
+- Always run scripts and commands from `

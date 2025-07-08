@@ -4,7 +4,7 @@
 WonderWorks is a modern, accessible e-commerce platform built with Next.js, TypeScript, Tailwind CSS, and Prisma. It features a robust admin dashboard for managing products, categories, users, and orders, with a focus on clean design, accessibility, and maintainability.
 
 ## Features
-- **Admin Dashboard**: Manage products, categories, users, and orders with inline editing, validation, and actionable error states.
+- **Admin Dashboard**: Manage products, categories, users, and orders with inline editing, validation, actionable error states, and bulk actions (select multiple items for delete, update, etc.).
 - **Prisma Integration**: All data is managed via Prisma ORM, with a clear schema and seed data for development.
 - **Robust Error Handling**: All actions (create, update, delete) provide specific, actionable feedback. API and database errors are surfaced to the user.
 - **Validation**: All forms have client-side validation, required field indicators, and clear error messages.
@@ -13,6 +13,9 @@ WonderWorks is a modern, accessible e-commerce platform built with Next.js, Type
 - **No Redundant UI**: All non-functional or placeholder UI has been removed. Only working features are visible.
 - **No Inline Styling**: All styles are managed via Tailwind and the design system.
 - **Linting & Code Quality**: ESLint and TypeScript are enforced. Warnings are minimized and code is kept clean.
+- **Bulk Actions**: Select multiple products, users, orders, or categories and perform bulk operations (delete, update, etc.) from the admin dashboard.
+- **Password Visibility Toggle**: Eye icon in password and password confirmation fields on login/register screens to show/hide input.
+- **Improved Modal UX**: All modals (e.g., "no categories" in product creation) have clear exit/okay buttons and ESC key support for accessibility.
 
 ## Getting Started
 1. **Install dependencies**:
@@ -51,12 +54,15 @@ WonderWorks is a modern, accessible e-commerce platform built with Next.js, Type
 - **Cannot delete category**: You cannot delete a category that has products assigned. Reassign or delete products first.
 - **API errors**: All errors are surfaced with specific messages. If you see a generic error, check the browser console and server logs for details.
 - **Prisma issues**: Ensure your database is migrated and seeded. Use Prisma Studio to inspect data.
+- **Cannot exit modal**: All modals now have an "Okay" button and support ESC to close.
 
 ## Accessibility & UX
 - All text uses high-contrast, semantic colors.
 - All forms have required field indicators and validation.
 - No UI elements appear clickable unless they are actionable.
 - All error states are clear and actionable.
+- All forms have password visibility toggles for better usability.
+- All modals are accessible and can be closed with a button or ESC key.
 
 ## Contributing
 - Follow the design system and UI kit for all new components.
