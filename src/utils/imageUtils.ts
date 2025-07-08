@@ -77,7 +77,7 @@ export async function processImageFile(file: File): Promise<string> {
  */
 export const getImageWithFallback = (
   imageUrl: string | undefined, 
-  fallbackUrl: string = '/placeholder.svg'
+  fallbackUrl = '/placeholder.svg'
 ): string => {
   // Debug the image URL
   debugImage('getImageWithFallback', imageUrl);
@@ -151,8 +151,8 @@ export function sanitizeImageUrl(url: string): string {
  */
 export const resizeImage = (
   dataUrl: string, 
-  maxWidth: number = 800, 
-  maxHeight: number = 800
+  maxWidth = 800, 
+  maxHeight = 800
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     if (!isValidDataUrl(dataUrl)) {

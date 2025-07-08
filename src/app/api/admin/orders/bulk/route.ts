@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Bulk order action error:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: (error instanceof Error ? error.message : 'Internal server error') }, { status: 500 });
   }
 } 

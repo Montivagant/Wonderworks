@@ -48,6 +48,8 @@ interface OrderResponse {
   };
 }
 
+type BulkOrderActionPayload = { ids: number[]; action: 'cancel' | 'delete' | 'markShipped' | 'markDelivered' };
+
 export default function OrderManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -80,7 +82,7 @@ export default function OrderManagement() {
     try {
       const url = '/api/admin/orders/bulk';
       const method = 'POST';
-      const body: any = { ids: selectedOrders, action };
+      const body: BulkOrderActionPayload = { ids: selectedOrders, action };
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },

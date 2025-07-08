@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     // Get orders with pagination
     const orders = await prisma.order.findMany({
-      where: where as any,
+      where: where as Record<string, unknown>,
       skip,
       take: limit,
       orderBy: { createdAt: 'desc' },
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Get total count for pagination
-    const total = await prisma.order.count({ where: where as any });
+    const total = await prisma.order.count({ where: where as Record<string, unknown> });
 
     return NextResponse.json({
       orders: orders.map((order: {

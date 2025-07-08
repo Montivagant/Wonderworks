@@ -18,12 +18,22 @@ import { Product } from '@/types';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { useCart } from '@/contexts/CartContext';
 
+interface CartItem {
+  productId: number;
+  id: number;
+  name: string;
+  price: number;
+  image?: string;
+  quantity: number;
+  inStock: boolean;
+}
+
 interface ProductCardProps {
   product: Product;
   onAddToCart?: (product: Product) => Promise<void>;
   priority?: boolean;
   viewMode?: 'grid' | 'list';
-  cart?: { items: any[] };
+  cart?: { items: CartItem[] };
 }
 
 export default function ProductCard({ product, onAddToCart, priority = false, viewMode = 'grid', cart }: ProductCardProps) {
@@ -35,8 +45,6 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
   
   // NEW: helper to detect data URLs
   const isDataUrl = React.useCallback((src: string | undefined) => src?.startsWith('data:image'), []);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const setImageLoaded = React.useCallback((_unused?: boolean) => {}, []);
 
   // Process the image source when the component mounts or product changes
   React.useEffect(() => {
@@ -91,7 +99,7 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
   const isWishlisted = isInWishlist(product.id);
 
   // Find if product is in cart
-  const cartItem = cart?.items?.find?.((item: any) => item.productId === product.id);
+  const cartItem = cart?.items?.find?.((item: CartItem) => item.productId === product.id);
 
   return (
     <motion.div
@@ -140,7 +148,7 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
                 src={imageSrc}
                 alt={product.name}
                 className="absolute inset-0 w-full h-full object-cover"
-                onLoad={() => setImageLoaded(true)}
+                onLoad={undefined}
                 onError={() => setImageError(true)}
               />
             ) : (
@@ -150,7 +158,7 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
                 fill
                 className="absolute inset-0 w-full h-full object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                onLoad={() => setImageLoaded(true)}
+                onLoad={undefined}
                 onError={() => setImageError(true)}
                 unoptimized={isDataUrl(imageSrc)}
                 priority={priority}
@@ -177,148 +185,4 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
               {/* Product Info */}
         <div className={`flex-1 flex flex-col ${
           viewMode === 'grid' ? 'p-6' : 'p-8'
-        }`}>
-        {/* Category */}
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="text-sm text-primary-600 font-medium mb-2"
-        >
-          {product.category?.name}
-        </motion.p>
-        
-        {/* Product Name */}
-        <Link href={`/product/${product.id}`}>
-          <motion.h4 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className={`font-semibold text-neutral-900 mb-2 hover:text-primary-600 transition-colors line-clamp-2 ${
-              viewMode === 'grid' ? 'text-lg' : 'text-xl'
-            }`}
-          >
-            {product.name}
-          </motion.h4>
-        </Link>
-
-        {/* Description (if available) */}
-        {product.description && (
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-                          className="text-sm text-neutral-700 mb-4 line-clamp-2 flex-1"
-          >
-            {product.description}
-          </motion.p>
-        )}
-
-        {/* Price and Rating */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="flex items-center justify-between mb-4"
-        >
-          <span className={`font-bold text-neutral-900 ${
-            viewMode === 'grid' ? 'text-lg' : 'text-2xl'
-          }`}>
-            {product.price.toFixed(2)} <span className="text-base font-normal text-primary-600">EGP</span>
-          </span>
-          <div className="flex items-center space-x-1">
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <svg
-                  key={i}
-                  className={`w-4 h-4 ${i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-neutral-300'}`}
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
-            </div>
-                            <span className="text-sm text-neutral-700 ml-1">({product.rating})</span>
-          </div>
-        </motion.div>
-
-        {/* Stock Status */}
-        {product.inStock !== undefined && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mb-4"
-          >
-            {product.inStock ? (
-              <div className="flex items-center text-green-600 text-sm font-medium">
-                <CheckCircle className="w-4 h-4 mr-2" />
-                In Stock
-              </div>
-            ) : (
-              <div className="flex items-center text-red-600 text-sm font-medium">
-                <XCircle className="w-4 h-4 mr-2" />
-                Out of Stock
-              </div>
-            )}
-          </motion.div>
-        )}
-
-        {/* Add to Cart Button or Quantity Controls */}
-        {cartItem ? (
-          <div className="w-full flex items-center gap-2 mt-auto">
-            <button
-              className="px-3 py-2 rounded-lg bg-primary-100 text-primary-700 font-bold border border-primary-200 hover:bg-primary-200 transition"
-              onClick={() => {
-                if (cartItem.quantity <= 1) {
-                  removeItem(product.id);
-                } else {
-                  updateQuantity(product.id, cartItem.quantity - 1);
-                }
-              }}
-            >
-              -
-            </button>
-            <span className="min-w-[2.5rem] text-center font-semibold text-primary-700 bg-primary-50 rounded-lg px-2 py-2 border border-primary-100">
-              {cartItem.quantity}
-            </span>
-            <button
-              className="px-3 py-2 rounded-lg bg-primary-100 text-primary-700 font-bold border border-primary-200 hover:bg-primary-200 transition"
-              onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}
-            >
-              +
-            </button>
-          </div>
-        ) : (
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            onClick={handleAddToCart}
-            disabled={isLoading || product.inStock === false}
-            className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 transform mt-auto ${
-              isLoading || product.inStock === false
-                ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-primary-500 to-primary-400 text-white hover:from-primary-600 hover:to-primary-500 active:scale-95 shadow-md hover:shadow-lg'
-            }`}
-          >
-            {isLoading ? (
-              <div className="flex items-center justify-center">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                Adding...
-              </div>
-            ) : product.inStock === false ? (
-              'Out of Stock'
-            ) : (
-              <div className="flex items-center justify-center">
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                Add to Cart
-              </div>
-            )}
-          </motion.button>
-        )}
-      </div>
-    </motion.div>
-  );
-} 
+        }`

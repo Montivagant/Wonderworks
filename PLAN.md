@@ -62,4 +62,4 @@ For implementation details, see `DEVELOPMENT.md` and `README.md`.
 | 10 | Add password visibility toggle to login/register | dev | completed |
 | 11 | Improve modal accessibility (exit/okay button, ESC support) | dev | completed |
 
-Progress on these items is tracked in `docs/ROADMAP.md` and in-code TODO markers. 
+Progress on these items is tracked in `docs/ROADMAP.md` and in-code TODO markers.

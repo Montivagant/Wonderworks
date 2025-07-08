@@ -68,19 +68,20 @@ const calculateCartTotals = (items: Cart['items']): { total: number; itemCount: 
   return { total, itemCount };
 };
 
-function ensureValidCart(cart: any): Cart {
+function ensureValidCart(cart: Partial<Cart> | null | undefined): Cart {
   if (!cart || !Array.isArray(cart.items)) {
     return EMPTY_CART;
   }
-  
-  const validItems = cart.items.filter((item: any) => 
-    item && typeof item.productId === 'number' && 
-    typeof item.name === 'string' && 
-    typeof item.price === 'number' && 
-    typeof item.quantity === 'number' && 
+
+  const validItems = cart.items.filter((item): item is CartItem =>
+    item &&
+    typeof item.productId === 'number' &&
+    typeof item.name === 'string' &&
+    typeof item.price === 'number' &&
+    typeof item.quantity === 'number' &&
     item.quantity > 0
   );
-  
+
   const { total, itemCount } = calculateCartTotals(validItems);
   return { items: validItems, total, itemCount };
 }
