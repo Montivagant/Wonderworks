@@ -57,25 +57,6 @@ export default function ProductDetailPage() {
     return images.map(img => getImageWithFallback(sanitizeImageUrl(img)));
   }, [images]);
 
-  // Debug logging for images
-  useEffect(() => {
-    if (product) {
-      console.log('🖼️ [Product Images Debug] Product:', product.name);
-      console.log('🖼️ [Product Images Debug] Product.images:', product.images);
-      console.log('🖼️ [Product Images Debug] Product.image:', product.image);
-      console.log('🖼️ [Product Images Debug] Processed images array:', images);
-      console.log('🖼️ [Product Images Debug] Final processed images:', processedImages);
-      console.log('🖼️ [Product Images Debug] Selected image index:', selectedImage);
-      console.log('🖼️ [Product Images Debug] Number of images:', processedImages.length);
-      console.log('🖼️ [Product Images Debug] Should show carousel:', processedImages.length > 1);
-      
-      // Log each image individually
-      processedImages.forEach((img, index) => {
-        console.log(`🖼️ [Product Images Debug] Image ${index}:`, img.substring(0, 50) + '...');
-      });
-    }
-  }, [product, images, processedImages, selectedImage]);
-
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -122,9 +103,6 @@ export default function ProductDetailPage() {
       // Filter out the current product
       const otherProducts = allProducts.filter(p => p.id !== currentProduct.id);
       
-      console.log('🔍 [Recommendations] Finding related products for:', currentProduct.name);
-      console.log('🔍 [Recommendations] Available products:', otherProducts.length);
-      
       // Calculate similarity scores
       const scoredProducts = otherProducts.map(product => {
         let score = 0;
@@ -156,8 +134,6 @@ export default function ProductDetailPage() {
           reasons.push('In stock');
         }
         
-        console.log(`🔍 [Recommendations] ${product.name}: Score ${score} (${reasons.join(', ')})`);
-        
         return { ...product, score };
       });
       
@@ -165,8 +141,6 @@ export default function ProductDetailPage() {
       const topRelated = scoredProducts
         .sort((a, b) => b.score - a.score)
         .slice(0, 4);
-      
-      console.log('🔍 [Recommendations] Top related products:', topRelated.map(p => `${p.name} (Score: ${p.score})`));
       
       setRelatedProducts(topRelated);
     } catch (error) {
@@ -309,12 +283,12 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 py-8 font-sans">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
-              <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="mt-4 text-lg text-gray-700">Loading product...</p>
+              <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className="mt-4 text-lg text-neutral-700 font-sans">Loading product...</p>
             </div>
           </div>
         </div>
@@ -324,14 +298,14 @@ export default function ProductDetailPage() {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 py-8 font-sans">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-20">
             <div className="text-6xl mb-6">😕</div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            <h1 className="text-3xl font-bold text-neutral-900 mb-4 font-sans">
               {error === 'Product not found' ? 'Product Not Found' : 'Something went wrong'}
             </h1>
-            <p className="text-xl text-gray-600 mb-8">
+            <p className="text-xl text-neutral-600 mb-8 font-sans">
               {error === 'Product not found' 
                 ? 'The product you\'re looking for doesn\'t exist or has been removed.'
                 : 'We couldn\'t load the product details. Please try again.'
@@ -339,7 +313,7 @@ export default function ProductDetailPage() {
             </p>
             <button
               onClick={() => router.push('/products')}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+              className="bg-gradient-to-r from-primary-600 to-primary-400 text-white px-8 py-4 rounded-xl font-semibold hover:from-primary-700 hover:to-primary-500 transition-all duration-300 font-sans"
             >
               Back to Products
             </button>
@@ -355,15 +329,15 @@ export default function ProductDetailPage() {
   const total = subtotal + shipping + tax;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 py-8 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
         <nav className="mb-8">
-          <ol className="flex items-center space-x-2 text-sm text-gray-600">
+          <ol className="flex items-center space-x-2 text-sm text-neutral-600 font-sans">
             <li>
               <button 
-                onClick={() => router.push('/')}
-                className="hover:text-blue-600 transition-colors"
+                onClick={() => router.push('/')} 
+                className="hover:text-primary-600 transition-colors font-sans"
               >
                 Home
               </button>
@@ -371,14 +345,14 @@ export default function ProductDetailPage() {
             <li>/</li>
             <li>
               <button 
-                onClick={() => router.push('/products')}
-                className="hover:text-blue-600 transition-colors"
+                onClick={() => router.push('/products')} 
+                className="hover:text-primary-600 transition-colors font-sans"
               >
                 Products
               </button>
             </li>
             <li>/</li>
-            <li className="text-gray-900 font-medium">{product.name}</li>
+            <li className="text-neutral-900 font-medium font-sans">{product.name}</li>
           </ol>
         </nav>
 
@@ -387,7 +361,7 @@ export default function ProductDetailPage() {
           <div className="space-y-6">
             {/* Main Image Carousel */}
             <motion.div 
-              className="relative aspect-square bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+              className="relative aspect-square bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden font-sans"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -508,8 +482,8 @@ export default function ProductDetailPage() {
                       onClick={() => setSelectedImage(index)}
                       className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
                         selectedImage === index 
-                          ? 'border-blue-500 scale-105' 
-                          : 'border-gray-200 hover:border-gray-300 hover:scale-105'
+                          ? 'border-primary-500 scale-105' 
+                          : 'border-neutral-200 hover:border-neutral-300 hover:scale-105'
                       }`}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -534,8 +508,8 @@ export default function ProductDetailPage() {
                         key={index}
                         className={`w-2 h-2 rounded-full transition-colors ${
                           Math.floor(selectedImage / 4) === index 
-                            ? 'bg-blue-500' 
-                            : 'bg-gray-300'
+                            ? 'bg-primary-500' 
+                            : 'bg-neutral-300'
                         }`}
                       />
                     ))}
@@ -554,13 +528,13 @@ export default function ProductDetailPage() {
             >
               {/* Category */}
               <div className="mb-4">
-                <span className="inline-block bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                <span className="inline-block bg-primary-100 text-primary-800 text-sm font-medium px-3 py-1 rounded-full">
                   {product.category}
                 </span>
               </div>
 
               {/* Product Name */}
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">{product.name}</h1>
+              <h1 className="text-4xl font-bold text-neutral-900 mb-4">{product.name}</h1>
 
               {/* Rating */}
               <div className="flex items-center space-x-2 mb-4">
@@ -571,20 +545,20 @@ export default function ProductDetailPage() {
                       className={`w-5 h-5 ${
                         i < Math.floor(product.rating) 
                           ? 'text-yellow-400 fill-current' 
-                          : 'text-gray-300'
+                          : 'text-neutral-300'
                       }`}
                     />
                   ))}
                 </div>
-                <span className="text-gray-600">({product.rating})</span>
-                <span className="text-gray-400">•</span>
-                <span className="text-gray-600">Based on reviews</span>
+                <span className="text-neutral-600">({product.rating})</span>
+                <span className="text-neutral-400">•</span>
+                <span className="text-neutral-600">Based on reviews</span>
               </div>
 
               {/* Price */}
               <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">
-                  {product.price.toFixed(2)} <span className="text-2xl font-normal text-gray-500">EGP</span>
+                <span className="text-4xl font-bold text-neutral-900">
+                  {product.price.toFixed(2)} <span className="text-2xl font-normal text-neutral-500">EGP</span>
                 </span>
               </div>
 
@@ -606,27 +580,27 @@ export default function ProductDetailPage() {
               {/* Description */}
               {product.description && (
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
-                  <p className="text-gray-600 leading-relaxed">{product.description}</p>
+                  <h3 className="text-lg font-semibold text-neutral-900 mb-2">Description</h3>
+                  <p className="text-neutral-600 leading-relaxed">{product.description}</p>
                 </div>
               )}
 
               {/* Quantity Selector */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Quantity</label>
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={() => handleQuantityChange(quantity - 1)}
                     disabled={quantity <= 1}
-                    className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-10 h-10 rounded-lg border border-neutral-300 flex items-center justify-center hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     -
                   </button>
-                  <span className="w-16 text-center font-medium text-gray-900">{quantity}</span>
+                  <span className="w-16 text-center font-medium text-neutral-900">{quantity}</span>
                   <button
                     onClick={() => handleQuantityChange(quantity + 1)}
                     disabled={quantity >= 99}
-                    className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-10 h-10 rounded-lg border border-neutral-300 flex items-center justify-center hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     +
                   </button>
@@ -640,8 +614,8 @@ export default function ProductDetailPage() {
                   disabled={addingToCart || !product.inStock}
                   className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${
                     addingToCart || !product.inStock
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 active:scale-95 shadow-lg hover:shadow-xl'
+                      ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-primary-600 to-primary-400 text-white hover:from-primary-700 hover:to-primary-500 active:scale-95 shadow-lg hover:shadow-xl'
                   }`}
                 >
                   {addingToCart ? (
@@ -661,27 +635,27 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Order Summary */}
-              <div className="bg-gray-50 rounded-xl p-6 mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h3>
+              <div className="bg-neutral-50 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-semibold text-neutral-900 mb-4">Order Summary</h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Subtotal ({quantity} items)</span>
+                    <span className="text-neutral-600">Subtotal ({quantity} items)</span>
                     <span className="font-medium">{subtotal.toFixed(2)} EGP</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Shipping</span>
+                    <span className="text-neutral-600">Shipping</span>
                     <span className="font-medium">
                       {shipping === 0 ? 'Free' : `${shipping.toFixed(2)} EGP`}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Tax (8%)</span>
+                    <span className="text-neutral-600">Tax (8%)</span>
                     <span className="font-medium">{tax.toFixed(2)} EGP</span>
                   </div>
-                  <div className="border-t border-gray-200 pt-2">
+                  <div className="border-t border-neutral-200 pt-2">
                     <div className="flex justify-between">
-                      <span className="font-semibold text-gray-900">Total</span>
-                      <span className="font-semibold text-gray-900">{total.toFixed(2)} EGP</span>
+                      <span className="font-semibold text-neutral-900">Total</span>
+                      <span className="font-semibold text-neutral-900">{total.toFixed(2)} EGP</span>
                     </div>
                   </div>
                 </div>
@@ -689,15 +663,15 @@ export default function ProductDetailPage() {
 
               {/* Features */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-neutral-600">
                   <Truck className="w-4 h-4 mr-2" />
                   Free Shipping
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-neutral-600">
                   <Shield className="w-4 h-4 mr-2" />
                   Secure Payment
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-neutral-600">
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Easy Returns
                 </div>
@@ -713,15 +687,15 @@ export default function ProductDetailPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">You might also like</h2>
+          <h2 className="text-3xl font-bold text-neutral-900 mb-8">You might also like</h2>
           
           {loadingRelated ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[...Array(4)].map((_, index) => (
                 <div key={index} className="bg-white rounded-xl p-6 animate-pulse">
-                  <div className="w-full h-32 bg-gray-200 rounded-lg mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                  <div className="w-full h-32 bg-neutral-200 rounded-lg mb-4"></div>
+                  <div className="h-4 bg-neutral-200 rounded mb-2"></div>
+                  <div className="h-4 bg-neutral-200 rounded w-2/3"></div>
                 </div>
               ))}
             </div>
@@ -733,11 +707,11 @@ export default function ProductDetailPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   whileHover={{ y: -4 }}
-                  className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 cursor-pointer"
+                  className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-neutral-100 cursor-pointer"
                   onClick={() => router.push(`/product/${relatedProduct.id}`)}
                 >
                   {/* Product Image */}
-                  <div className="relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                  <div className="relative aspect-square bg-gradient-to-br from-neutral-100 to-neutral-200 overflow-hidden">
                     <Image
                       src={getImageWithFallback(sanitizeImageUrl(relatedProduct.image))}
                       alt={relatedProduct.name}
@@ -754,12 +728,12 @@ export default function ProductDetailPage() {
 
                   {/* Product Info */}
                   <div className="p-4">
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 text-sm">
+                    <h3 className="font-semibold text-neutral-900 mb-2 line-clamp-2 text-sm">
                       {relatedProduct.name}
                     </h3>
                     <div className="flex items-center justify-between">
-                      <span className="text-lg font-semibold text-gray-900">
-                        {relatedProduct.price.toFixed(2)} <span className="text-base font-normal text-gray-500">EGP</span>
+                      <span className="text-lg font-semibold text-neutral-900">
+                        {relatedProduct.price.toFixed(2)} <span className="text-base font-normal text-neutral-500">EGP</span>
                       </span>
                       <div className="flex items-center space-x-1">
                         <div className="flex">
@@ -769,12 +743,12 @@ export default function ProductDetailPage() {
                               className={`w-3 h-3 ${
                                 i < Math.floor(relatedProduct.rating) 
                                   ? 'text-yellow-400 fill-current' 
-                                  : 'text-gray-300'
+                                  : 'text-neutral-300'
                               }`}
                             />
                           ))}
                         </div>
-                        <span className="text-xs text-gray-600">({relatedProduct.rating})</span>
+                        <span className="text-xs text-neutral-600">({relatedProduct.rating})</span>
                       </div>
                     </div>
                   </div>
@@ -784,7 +758,7 @@ export default function ProductDetailPage() {
           ) : (
             <div className="text-center py-12">
               <div className="text-4xl mb-4">🎁</div>
-              <p className="text-gray-600">No related products found</p>
+              <p className="text-neutral-600">No related products found</p>
             </div>
           )}
         </motion.div>
@@ -796,7 +770,7 @@ export default function ProductDetailPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Reviews</h2>
+          <h2 className="text-3xl font-bold text-neutral-900 mb-8">Reviews</h2>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Review Form */}

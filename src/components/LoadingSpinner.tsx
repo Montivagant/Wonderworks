@@ -49,7 +49,7 @@ export default function LoadingSpinner({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className={`${textSizes[size]} text-gray-600 font-medium`}
+          className={`${textSizes[size]} text-gray-700 font-medium`}
         >
           {message}
         </motion.p>

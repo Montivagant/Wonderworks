@@ -1,6 +1,7 @@
 import { NextAuthOptions } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
+import FacebookProvider from 'next-auth/providers/facebook';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
@@ -24,6 +25,10 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
       allowDangerousEmailAccountLinking: true,
     }),
+    FacebookProvider({
+      clientId: process.env.FACEBOOK_CLIENT_ID || '',
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET || '',
+    }),
     Credentials({
       name: 'Credentials',
       credentials: {
@@ -31,21 +36,40 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials): Promise<CustomUser | null> {
-        const { email, password } = credentials ?? {};
-        if (!email || !password) return null;
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user || !user.password) return null;
-        if (!user.isVerified) {
-          throw new Error('Email not verified');
+        try {
+          const { email, password } = credentials ?? {};
+          if (!email || !password) {
+            console.error('Missing email or password');
+            throw new Error('Missing email or password');
+          }
+          const user = await prisma.user.findUnique({ where: { email } });
+          if (!user) {
+            console.error(`No user found with email: ${email}`);
+            throw new Error('No user found with this email');
+          }
+          if (!user.password) {
+            console.error(`User ${email} has no password set`);
+            throw new Error('No password set for this user');
+          }
+          if (!user.isVerified) {
+            console.error(`User ${email} is not verified`);
+            throw new Error('Email not verified');
+          }
+          const valid = await bcrypt.compare(password, user.password);
+          if (!valid) {
+            console.error(`Invalid password for user: ${email}`);
+            throw new Error('Invalid password');
+          }
+          return { 
+            id: user.id.toString(), 
+            email: user.email, 
+            name: user.name, 
+            role: user.role 
+          };
+        } catch (error) {
+          console.error('Authentication error:', error);
+          throw error;
         }
-        const valid = await bcrypt.compare(password, user.password);
-        if (!valid) return null;
-        return { 
-          id: user.id.toString(), 
-          email: user.email, 
-          name: user.name, 
-          role: user.role 
-        };
       },
     }),
   ],

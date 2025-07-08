@@ -58,7 +58,7 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
     setImageSrc(imageUrl);
     
     // Log the final result for debugging
-    console.log(`Product ${product.id} (${product.name}): Image ${imageUrl === '/placeholder.svg' ? 'FALLBACK' : 'OK'}`);
+  
   }, [product.image, product.id, product.name, product.images]);
 
   const handleAddToCart = async () => {
@@ -99,17 +99,17 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       whileHover={{ y: viewMode === 'grid' ? -4 : 0 }}
-      className={`group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 ${
+      className={`group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-neutral-100 font-sans ${
         viewMode === 'grid' ? 'h-full flex flex-col' : 'flex flex-row'
       }`}
     >
       {/* Product Image */}
       <Link href={`/product/${product.id}`}>
-        <div className={`relative bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden ${
+        <div className={`relative bg-gradient-to-br from-neutral-100 to-neutral-200 overflow-hidden ${
           viewMode === 'grid' ? 'aspect-square' : 'w-48 h-48'
         }`}>
           {product.featured && (
-            <div className="absolute top-2 left-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs px-2 py-0.5 rounded-full shadow-lg z-10 font-medium">
+            <div className="absolute top-2 left-2 bg-gradient-to-r from-primary-500 to-primary-400 text-white text-xs px-2 py-0.5 rounded-full shadow-lg z-10 font-medium">
               Featured
             </div>
           )}
@@ -128,7 +128,7 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
               className={`w-5 h-5 transition-colors duration-200 ${
                 isWishlisted 
                   ? 'text-red-500 fill-red-500' 
-                  : 'text-gray-600 hover:text-red-500'
+                  : 'text-neutral-700 hover:text-red-500'
               }`} 
             />
           </motion.button>
@@ -183,9 +183,9 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="text-sm text-orange-600 font-medium mb-2"
+          className="text-sm text-primary-600 font-medium mb-2"
         >
-          {product.category}
+          {product.category?.name}
         </motion.p>
         
         {/* Product Name */}
@@ -194,7 +194,7 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className={`font-semibold text-gray-900 mb-2 hover:text-orange-600 transition-colors line-clamp-2 ${
+            className={`font-semibold text-neutral-900 mb-2 hover:text-primary-600 transition-colors line-clamp-2 ${
               viewMode === 'grid' ? 'text-lg' : 'text-xl'
             }`}
           >
@@ -208,7 +208,7 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-sm text-gray-600 mb-4 line-clamp-2 flex-1"
+                          className="text-sm text-neutral-700 mb-4 line-clamp-2 flex-1"
           >
             {product.description}
           </motion.p>
@@ -221,17 +221,17 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
           transition={{ delay: 0.4 }}
           className="flex items-center justify-between mb-4"
         >
-          <span className={`font-bold text-gray-900 ${
+          <span className={`font-bold text-neutral-900 ${
             viewMode === 'grid' ? 'text-lg' : 'text-2xl'
           }`}>
-            {product.price.toFixed(2)} <span className="text-base font-normal text-orange-600">EGP</span>
+            {product.price.toFixed(2)} <span className="text-base font-normal text-primary-600">EGP</span>
           </span>
           <div className="flex items-center space-x-1">
             <div className="flex">
               {[...Array(5)].map((_, i) => (
                 <svg
                   key={i}
-                  className={`w-4 h-4 ${i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-300'}`}
+                  className={`w-4 h-4 ${i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-neutral-300'}`}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -239,7 +239,7 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
                 </svg>
               ))}
             </div>
-            <span className="text-sm text-gray-600 ml-1">({product.rating})</span>
+                            <span className="text-sm text-neutral-700 ml-1">({product.rating})</span>
           </div>
         </motion.div>
 
@@ -269,7 +269,7 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
         {cartItem ? (
           <div className="w-full flex items-center gap-2 mt-auto">
             <button
-              className="px-3 py-2 rounded-lg bg-orange-100 text-orange-700 font-bold border border-orange-200 hover:bg-orange-200 transition"
+              className="px-3 py-2 rounded-lg bg-primary-100 text-primary-700 font-bold border border-primary-200 hover:bg-primary-200 transition"
               onClick={() => {
                 if (cartItem.quantity <= 1) {
                   removeItem(product.id);
@@ -280,11 +280,11 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
             >
               -
             </button>
-            <span className="min-w-[2.5rem] text-center font-semibold text-orange-700 bg-orange-50 rounded-lg px-2 py-2 border border-orange-100">
+            <span className="min-w-[2.5rem] text-center font-semibold text-primary-700 bg-primary-50 rounded-lg px-2 py-2 border border-primary-100">
               {cartItem.quantity}
             </span>
             <button
-              className="px-3 py-2 rounded-lg bg-orange-100 text-orange-700 font-bold border border-orange-200 hover:bg-orange-200 transition"
+              className="px-3 py-2 rounded-lg bg-primary-100 text-primary-700 font-bold border border-primary-200 hover:bg-primary-200 transition"
               onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}
             >
               +
@@ -299,8 +299,8 @@ export default function ProductCard({ product, onAddToCart, priority = false, vi
             disabled={isLoading || product.inStock === false}
             className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 transform mt-auto ${
               isLoading || product.inStock === false
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 active:scale-95 shadow-md hover:shadow-lg'
+                ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-primary-500 to-primary-400 text-white hover:from-primary-600 hover:to-primary-500 active:scale-95 shadow-md hover:shadow-lg'
             }`}
           >
             {isLoading ? (

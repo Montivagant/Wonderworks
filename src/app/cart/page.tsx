@@ -4,28 +4,11 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/contexts/CartContext';
 import toast from 'react-hot-toast';
+import { useMemo } from 'react';
 
-export default function CartPage() {
-  const { cart, updateQuantity, removeItem, clearCartItems, isAuthenticated } = useCart();
-
-  const subtotal = cart.total;
-  const shipping = subtotal > 50 ? 0 : 5.99;
-  const tax = subtotal * 0.08; // 8% tax
-  const total = subtotal + shipping + tax;
-
-  const handleCheckout = () => {
-    if (!isAuthenticated) {
-      toast.error('Please log in to complete your purchase', {
-        duration: 4000,
-      });
-      return;
-    }
-    // If authenticated, proceed to checkout
-    window.location.href = '/checkout';
-  };
-
-  // Themed hero section
-  const Hero = () => (
+// Themed hero section for the cart page
+function Hero() {
+  return (
     <section className="relative isolate overflow-hidden bg-gradient-to-br from-orange-500 via-amber-500 to-rose-500 text-white mb-12">
       <motion.div
         initial={{ opacity: 0, scale: 0.8, x: -150 }}
@@ -59,6 +42,26 @@ export default function CartPage() {
       </div>
     </section>
   );
+}
+
+export default function CartPage() {
+  const { cart, updateQuantity, removeItem, clearCartItems, isAuthenticated } = useCart();
+
+  const subtotal = cart.total;
+  const shipping = subtotal > 50 ? 0 : 5.99;
+  const tax = subtotal * 0.08; // 8% tax
+  const total = subtotal + shipping + tax;
+
+  const handleCheckout = () => {
+    if (!isAuthenticated) {
+      toast.error('Please log in to complete your purchase', {
+        duration: 4000,
+      });
+      return;
+    }
+    // If authenticated, proceed to checkout
+    window.location.href = '/checkout';
+  };
 
   if ((cart.items || []).length === 0) {
     return (

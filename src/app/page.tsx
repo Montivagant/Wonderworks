@@ -1,47 +1,24 @@
 'use client';
 
-import HeroSection from '@/components/landing/HeroSection';
-import CategoriesSection from '@/components/landing/CategoriesSection';
-import FeaturedProductsSection from '@/components/landing/FeaturedProductsSection';
-import BenefitsSection from '@/components/landing/BenefitsSection';
-import TestimonialsSection from '@/components/landing/TestimonialsSection';
-import HowItWorksSection from '@/components/landing/HowItWorksSection';
-import NewsletterSection from '@/components/landing/NewsletterSection';
-import CTASection from '@/components/landing/CTASection';
-import { Product } from '@/types';
-import useSWR from 'swr';
-
-// simple fetch helper for SWR
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+import PromoCarousel from '@/components/marketplace/PromoCarousel';
+import FlashDeals from '@/components/marketplace/FlashDeals';
+import RecommendationGrid from '@/components/marketplace/RecommendationGrid';
+import TrustStrip from '@/components/marketplace/TrustStrip';
 
 export default function Home() {
-  const { data: products = [] } = useSWR<Product[]>("/api/products", fetcher);
-
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <HeroSection />
+      {/* Promo Carousel */}
+      <PromoCarousel />
 
-      {/* Categories Section */}
-      <CategoriesSection />
+      {/* Flash Deals */}
+      <FlashDeals />
 
-      {/* Featured Products Section */}
-      <FeaturedProductsSection products={products} />
+      {/* Trust Strip */}
+      <TrustStrip />
 
-      {/* Benefits Section */}
-      <BenefitsSection />
-
-      {/* How It Works Section */}
-      <HowItWorksSection />
-
-      {/* Testimonials Section */}
-      <TestimonialsSection />
-
-      {/* Newsletter Section */}
-      <NewsletterSection />
-
-      {/* Final CTA Section */}
-      <CTASection />
+      {/* Recommendation Grid */}
+      <RecommendationGrid />
     </div>
   );
 }

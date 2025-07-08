@@ -106,7 +106,7 @@ export default function SearchAndFilter({
           className="mb-6"
         >
           <div className="flex items-center space-x-2 flex-wrap">
-            <span className="text-sm text-gray-600 font-medium">Active filters:</span>
+            <span className="text-sm text-gray-700 font-medium">Active filters:</span>
             
             {currentFilters.query && (
               <span className="inline-flex items-center bg-orange-100 text-orange-800 text-sm px-3 py-1.5 rounded-full font-medium">

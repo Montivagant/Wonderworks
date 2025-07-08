@@ -35,7 +35,7 @@ export default function WishlistPage() {
               <Heart className="w-12 h-12 text-orange-500" />
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Sign in to view your wishlist</h2>
-            <p className="text-lg text-gray-600 mb-8">
+            <p className="text-lg text-gray-700 mb-8">
               Create an account or sign in to save your favorite items and never lose track of what you love
             </p>
             <Link 
@@ -60,7 +60,7 @@ export default function WishlistPage() {
               <Heart className="w-12 h-12 text-orange-500" />
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Your wishlist is empty</h2>
-            <p className="text-lg text-gray-600 mb-8">
+            <p className="text-lg text-gray-700 mb-8">
               Start adding items you love to your wishlist and keep track of your favorite products
             </p>
             <Link 
@@ -117,7 +117,7 @@ export default function WishlistPage() {
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             My Wishlist
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto">
             {wishlist.itemCount} {wishlist.itemCount === 1 ? 'item' : 'items'} in your wishlist • Keep track of your favorite products
           </p>
         </motion.div>
@@ -135,7 +135,7 @@ export default function WishlistPage() {
                 <Heart className="w-6 h-6 text-orange-500" />
               </div>
               <p className="text-2xl font-bold text-gray-900">{wishlist.itemCount}</p>
-              <p className="text-sm text-gray-600">Total Items</p>
+              <p className="text-sm text-gray-700">Total Items</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -144,7 +144,7 @@ export default function WishlistPage() {
               <p className="text-2xl font-bold text-gray-900">
                 {wishlist.items.filter(item => item.inStock).length}
               </p>
-              <p className="text-sm text-gray-600">In Stock</p>
+              <p className="text-sm text-gray-700">In Stock</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -153,7 +153,7 @@ export default function WishlistPage() {
               <p className="text-2xl font-bold text-gray-900">
                 {wishlist.items.reduce((total, item) => total + item.price, 0).toFixed(2)}
               </p>
-              <p className="text-sm text-gray-600">Total Value (EGP)</p>
+              <p className="text-sm text-gray-700">Total Value (EGP)</p>
             </div>
           </div>
         </motion.div>
@@ -199,7 +199,7 @@ export default function WishlistPage() {
                 {/* Category */}
                 <p className="text-sm text-orange-600 font-semibold mb-2 flex items-center">
                   <Package className="w-3 h-3 mr-1" />
-                  {item.category}
+                  {typeof item.category === 'object' ? item.category?.name : item.category}
                 </p>
                 
                 {/* Product Name */}
@@ -229,7 +229,7 @@ export default function WishlistPage() {
                         />
                       ))}
                     </div>
-                    <span className="text-sm text-gray-600 ml-1 font-medium">({item.rating})</span>
+                    <span className="text-sm text-gray-700 ml-1 font-medium">({item.rating})</span>
                   </div>
                 </div>
 

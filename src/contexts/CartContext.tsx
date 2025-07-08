@@ -1,10 +1,26 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode, useEffect, useCallback } from 'react';
-import useSWR from 'swr';
-import { Cart, Product } from '@/types';
+import React, { createContext, useContext, ReactNode, useCallback, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import useSWR from 'swr';
 import toast from 'react-hot-toast';
+import { Product } from '@/types';
+
+interface CartItem {
+  productId: number;
+  id: number;
+  name: string;
+  price: number;
+  image?: string;
+  quantity: number;
+  inStock: boolean;
+}
+
+interface Cart {
+  items: CartItem[];
+  total: number;
+  itemCount: number;
+}
 
 interface CartContextType {
   cart: Cart;
@@ -17,14 +33,11 @@ interface CartContextType {
 
 const EMPTY_CART: Cart = { items: [], total: 0, itemCount: 0 };
 
-// Local storage key for temporary cart
-const TEMP_CART_KEY = 'wonderworks_temp_cart';
-
-// Helper functions for localStorage
+// Local storage helpers
 const getTempCart = (): Cart => {
   if (typeof window === 'undefined') return EMPTY_CART;
   try {
-    const stored = localStorage.getItem(TEMP_CART_KEY);
+    const stored = localStorage.getItem('tempCart');
     return stored ? JSON.parse(stored) : EMPTY_CART;
   } catch {
     return EMPTY_CART;
@@ -34,7 +47,7 @@ const getTempCart = (): Cart => {
 const setTempCart = (cart: Cart) => {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(TEMP_CART_KEY, JSON.stringify(cart));
+    localStorage.setItem('tempCart', JSON.stringify(cart));
   } catch (error) {
     console.error('Failed to save temp cart:', error);
   }
@@ -43,46 +56,49 @@ const setTempCart = (cart: Cart) => {
 const clearTempCart = () => {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.removeItem(TEMP_CART_KEY);
+    localStorage.removeItem('tempCart');
   } catch (error) {
     console.error('Failed to clear temp cart:', error);
   }
 };
 
-// Calculate cart totals
 const calculateCartTotals = (items: Cart['items']): { total: number; itemCount: number } => {
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   return { total, itemCount };
 };
 
-// Utility to coerce any cart-like object to a valid Cart
 function ensureValidCart(cart: any): Cart {
-  return {
-    items: Array.isArray(cart?.items) ? cart.items : [],
-    total: typeof cart?.total === 'number' ? cart.total : 0,
-    itemCount: typeof cart?.itemCount === 'number' ? cart.itemCount : 0,
-  };
+  if (!cart || !Array.isArray(cart.items)) {
+    return EMPTY_CART;
+  }
+  
+  const validItems = cart.items.filter((item: any) => 
+    item && typeof item.productId === 'number' && 
+    typeof item.name === 'string' && 
+    typeof item.price === 'number' && 
+    typeof item.quantity === 'number' && 
+    item.quantity > 0
+  );
+  
+  const { total, itemCount } = calculateCartTotals(validItems);
+  return { items: validItems, total, itemCount };
 }
 
 const fetcher = async (url: string): Promise<Cart> => {
-  console.log('🛒 [CartContext] Fetching cart from:', url);
   const res = await fetch(url, { credentials: 'include' });
-  console.log('🛒 [CartContext] Cart fetch response status:', res.status);
   
   if (res.status === 401) {
-    console.log('🛒 [CartContext] User not authenticated, returning empty cart');
     return EMPTY_CART;
   }
   
   if (!res.ok) {
-    console.error('🛒 [CartContext] Cart fetch failed:', res.status, res.statusText);
+    console.error('Cart fetch failed:', res.status, res.statusText);
     throw new Error('Failed to fetch cart');
   }
   
   const apiData = await res.json();
   const cartData = apiData?.cart;
-  console.log('🛒 [CartContext] Cart data received:', cartData);
   return ensureValidCart(cartData ?? EMPTY_CART);
 };
 
@@ -92,15 +108,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const [tempCart, setTempCartState] = React.useState<Cart>(EMPTY_CART);
 
-  console.log('🛒 [CartContext] Session status:', status);
-  console.log('🛒 [CartContext] Session data:', session);
-
   // Load temp cart from localStorage on mount
   useEffect(() => {
     if (status === 'unauthenticated') {
       const stored = ensureValidCart(getTempCart());
       setTempCartState(stored);
-      console.log('🛒 [CartContext] Loaded temp cart from localStorage:', stored);
     }
   }, [status]);
 
@@ -116,8 +128,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Function to migrate temp cart items to server
   const migrateTempCartToServer = useCallback(async () => {
     if (!session?.user?.email || tempCart.items.length === 0) return;
-
-    console.log('🛒 [CartContext] Migrating temp cart to server:', tempCart.items.length, 'items');
     
     try {
       // Add each item from temp cart to server cart
@@ -135,12 +145,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // Clear temp cart after successful migration
       setTempCartState(EMPTY_CART);
       localStorage.removeItem('tempCart');
-      console.log('🛒 [CartContext] Temp cart migrated successfully');
       
       // Refresh server cart
       mutate();
     } catch (error) {
-      console.error('🛒 [CartContext] Failed to migrate temp cart:', error);
+      console.error('Failed to migrate temp cart:', error);
     }
   }, [session?.user?.email, tempCart.items, mutate]);
 
@@ -155,64 +164,48 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (status === 'unauthenticated') {
       setTempCart(tempCart);
-      console.log('🛒 [CartContext] Saved temp cart to localStorage:', tempCart);
     }
   }, [tempCart, status]);
 
   // Use server cart if authenticated, temp cart if not
   const cart = ensureValidCart(status === 'authenticated' ? serverCart : tempCart);
   const isAuthenticated = status === 'authenticated';
-
-  console.log('🛒 [CartContext] Current cart state:', cart);
-  console.log('🛒 [CartContext] Is authenticated:', isAuthenticated);
   
   if (error) {
-    console.error('🛒 [CartContext] SWR error:', error);
+    console.error('SWR error:', error);
   }
 
   // Helper to refresh cart after mutation
   const refresh = () => {
-    console.log('🛒 [CartContext] Refreshing cart...');
     if (isAuthenticated) {
       mutate();
     }
   };
 
   const addItem = async (product: Product) => {
-    console.log('🛒 [CartContext] addItem called with product:', product);
-    console.log('🛒 [CartContext] Current auth status:', status);
-    
     if (isAuthenticated) {
       // Authenticated user - use server cart
       try {
-        console.log('🛒 [CartContext] Sending POST request to /api/cart');
         const response = await fetch('/api/cart', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ productId: product.id, quantity: 1 }),
         });
         
-        console.log('🛒 [CartContext] Add item response status:', response.status);
-        
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('🛒 [CartContext] Add item failed:', response.status, errorText);
+          console.error('Add item failed:', response.status, errorText);
           throw new Error(`Failed to add item: ${response.status} ${errorText}`);
         }
         
-        const result = await response.json();
-        console.log('🛒 [CartContext] Add item success:', result);
-        
-        console.log('🛒 [CartContext] Refreshing cart after add...');
         refresh();
         toast.success(`${product.name} added to cart!`);
       } catch (error) {
-        console.error('🛒 [CartContext] Error adding item to cart:', error);
+        console.error('Error adding item to cart:', error);
         toast.error('Failed to add item to cart');
       }
     } else {
       // Unauthenticated user - use temp cart
-      console.log('🛒 [CartContext] Adding to temp cart');
       const currentItems = [...tempCart.items];
       const existingItemIndex = currentItems.findIndex(item => item.productId === product.id);
       
@@ -237,13 +230,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       
       setTempCartState(newCart);
       toast.success(`${product.name} added to cart!`);
-      console.log('🛒 [CartContext] Temp cart updated:', newCart);
     }
   };
 
   const removeItem = async (productId: number) => {
-    console.log('🛒 [CartContext] removeItem called with productId:', productId);
-    
     if (isAuthenticated) {
       // Authenticated user - use server cart
       try {
@@ -253,43 +243,35 @@ export function CartProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({ productId }),
         });
         
-        console.log('🛒 [CartContext] Remove item response status:', response.status);
-        
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('🛒 [CartContext] Remove item failed:', response.status, errorText);
+          console.error('Remove item failed:', response.status, errorText);
           throw new Error(`Failed to remove item: ${response.status} ${errorText}`);
         }
         
-        console.log('🛒 [CartContext] Refreshing cart after remove...');
         refresh();
         toast.success('Item removed from cart');
       } catch (error) {
-        console.error('🛒 [CartContext] Error removing item from cart:', error);
+        console.error('Error removing item from cart:', error);
         toast.error('Failed to remove item from cart');
       }
     } else {
       // Unauthenticated user - use temp cart
-      console.log('🛒 [CartContext] Removing from temp cart');
       const currentItems = tempCart.items.filter(item => item.productId !== productId);
       const { total, itemCount } = calculateCartTotals(currentItems);
       const newCart = { items: currentItems, total, itemCount };
       
       setTempCartState(newCart);
       toast.success('Item removed from cart');
-      console.log('🛒 [CartContext] Temp cart updated:', newCart);
     }
   };
 
   const updateQuantity = async (productId: number, quantity: number) => {
-    console.log('🛒 [CartContext] updateQuantity called with productId:', productId, 'quantity:', quantity);
-    
     if (quantity <= 0) {
-      console.log('🛒 [CartContext] Quantity <= 0, removing item instead');
       await removeItem(productId);
       return;
     }
-
+    
     if (isAuthenticated) {
       // Authenticated user - use server cart
       try {
@@ -299,24 +281,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({ productId, quantity }),
         });
         
-        console.log('🛒 [CartContext] Update quantity response status:', response.status);
-        
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('🛒 [CartContext] Update quantity failed:', response.status, errorText);
+          console.error('Update quantity failed:', response.status, errorText);
           throw new Error(`Failed to update quantity: ${response.status} ${errorText}`);
         }
         
-        console.log('🛒 [CartContext] Refreshing cart after quantity update...');
         refresh();
         toast.success('Cart updated');
       } catch (error) {
-        console.error('🛒 [CartContext] Error updating quantity:', error);
+        console.error('Error updating cart quantity:', error);
         toast.error('Failed to update cart');
       }
     } else {
       // Unauthenticated user - use temp cart
-      console.log('🛒 [CartContext] Updating temp cart quantity');
       const currentItems = [...tempCart.items];
       const itemIndex = currentItems.findIndex(item => item.productId === productId);
       
@@ -327,55 +305,50 @@ export function CartProvider({ children }: { children: ReactNode }) {
         
         setTempCartState(newCart);
         toast.success('Cart updated');
-        console.log('🛒 [CartContext] Temp cart updated:', newCart);
       }
     }
   };
 
   const clearCartItems = async () => {
-    console.log('🛒 [CartContext] clearCartItems called');
-    
     if (isAuthenticated) {
       // Authenticated user - use server cart
       try {
-        const response = await fetch('/api/cart', { method: 'DELETE' });
-        console.log('🛒 [CartContext] Clear cart response status:', response.status);
+        const response = await fetch('/api/cart', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clearAll: true }),
+        });
         
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('🛒 [CartContext] Clear cart failed:', response.status, errorText);
+          console.error('Clear cart failed:', response.status, errorText);
           throw new Error(`Failed to clear cart: ${response.status} ${errorText}`);
         }
         
-        console.log('🛒 [CartContext] Refreshing cart after clear...');
         refresh();
         toast.success('Cart cleared');
       } catch (error) {
-        console.error('🛒 [CartContext] Error clearing cart:', error);
+        console.error('Error clearing cart:', error);
         toast.error('Failed to clear cart');
       }
     } else {
       // Unauthenticated user - use temp cart
-      console.log('🛒 [CartContext] Clearing temp cart');
       setTempCartState(EMPTY_CART);
       clearTempCart();
       toast.success('Cart cleared');
-      console.log('🛒 [CartContext] Temp cart cleared');
     }
   };
 
-  return (
-    <CartContext.Provider value={{ 
-      cart, 
-      addItem, 
-      removeItem, 
-      updateQuantity, 
-      clearCartItems,
-      isAuthenticated 
-    }}>
-      {children}
-    </CartContext.Provider>
-  );
+  const value: CartContextType = {
+    cart,
+    addItem,
+    removeItem,
+    updateQuantity,
+    clearCartItems,
+    isAuthenticated,
+  };
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {

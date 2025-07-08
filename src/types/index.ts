@@ -11,13 +11,19 @@ export interface Product {
   price: number;
   image?: string;
   images?: { id: number; url: string; position: number }[];
-  category: string;
+  categoryId?: number;
+  category?: Category;
   rating: number;
   description?: string;
   inStock?: boolean;
   createdAt?: string;
   featured?: boolean;
   reviews?: Review[];
+  isFlashDeal?: boolean;
+  isRecommended?: boolean;
+  flashDealEndTime?: string | null;
+  originalPrice?: number | null;
+  archived?: boolean;
 }
 
 /**
@@ -151,4 +157,15 @@ export interface WishlistAnalytics {
     wishlistItemCount: number;
     lastActivity: string;
   }[];
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  nameAr?: string;
+  slug: string;
+  description?: string;
+  image?: string;
+  createdAt: string;
+  updatedAt: string;
 } 

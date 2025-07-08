@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import SiteHeader from '@/components/layout/SiteHeader';
+import SiteFooter from '@/components/layout/SiteFooter';
+import CategoryBar from '@/components/layout/CategoryBar';
 import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { Toaster } from "react-hot-toast";
@@ -36,34 +37,35 @@ export default function RootLayout({
         <AuthProvider>
         <WishlistProvider>
         <CartProvider>
-          <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
-            <Header />
+          <div className="min-h-screen bg-white flex flex-col">
+            <SiteHeader />
+            <CategoryBar />
             <main className="flex-1">
               {children}
             </main>
-            <Footer />
+            <SiteFooter />
           </div>
           <Toaster 
             position="top-right"
             toastOptions={{
               duration: 3000,
               style: {
-                background: '#363636',
-                color: '#fff',
+                background: 'var(--neutral-800)',
+                color: 'var(--neutral-50)',
                 borderRadius: '12px',
                 padding: '16px',
                 fontSize: '14px',
               },
               success: {
                 iconTheme: {
-                  primary: '#10B981',
-                  secondary: '#fff',
+                  primary: 'var(--success-500)',
+                  secondary: 'var(--neutral-50)',
                 },
               },
               error: {
                 iconTheme: {
-                  primary: '#EF4444',
-                  secondary: '#fff',
+                  primary: 'var(--error-500)',
+                  secondary: 'var(--neutral-50)',
                 },
               },
             }}

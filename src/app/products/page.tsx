@@ -7,7 +7,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import SearchAndFilter from '@/components/SearchAndFilter';
 import { useCart } from '@/contexts/CartContext';
 import { sanitizeImageUrl, debugImage } from '@/utils/imageUtils';
-import { Product } from '@/types';
+import { Product, Category } from '@/types';
 import useSWR from 'swr';
 import { ShoppingBag, Filter, Grid, List, Sparkles, Search } from 'lucide-react';
 
@@ -30,16 +30,7 @@ export default function ProductsPage() {
     rating: 0,
   });
 
-  const categories = [
-    { id: 'all', name: 'All Products', color: 'from-gray-500 to-gray-600', icon: ShoppingBag },
-    { id: 'toys-games', name: 'Toys & Games', color: 'from-orange-500 to-amber-500', icon: ShoppingBag },
-    { id: 'decor', name: 'Decor', color: 'from-rose-500 to-pink-500', icon: ShoppingBag },
-    { id: 'home', name: 'Home', color: 'from-emerald-500 to-teal-500', icon: ShoppingBag },
-    { id: 'stationary', name: 'Stationary', color: 'from-blue-500 to-indigo-500', icon: ShoppingBag },
-    { id: 'kitchen', name: 'Kitchen', color: 'from-amber-500 to-orange-500', icon: ShoppingBag },
-    { id: 'pets', name: 'Pet Care', color: 'from-purple-500 to-violet-500', icon: ShoppingBag },
-    { id: 'tech', name: 'Tech', color: 'from-cyan-500 to-blue-500', icon: ShoppingBag },
-  ];
+  const { data: categories = [] } = useSWR<Category[]>('/api/categories', fetcher);
 
   // This is a more visible red square data URL for testing
   const redDotBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==';
@@ -148,11 +139,11 @@ export default function ProductsPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Get unique categories from products
+  // Get unique categories from products (by id)
   const availableCategories = useMemo(() => {
-    const cats = [...new Set(products.map(p => p.category))];
-    return cats.filter(cat => cat && cat.trim() !== '');
-  }, [products]);
+    const ids = [...new Set(products.map(p => p.categoryId))];
+    return categories.filter(cat => ids.includes(cat.id));
+  }, [products, categories]);
 
   // Advanced filtering logic
   const filteredProducts = useMemo(() => {
@@ -163,12 +154,12 @@ export default function ProductsPage() {
         const matchesSearch = 
           product.name.toLowerCase().includes(query) ||
           product.description?.toLowerCase().includes(query) ||
-          product.category.toLowerCase().includes(query);
+          (product.category?.name?.toLowerCase().includes(query));
         if (!matchesSearch) return false;
       }
 
       // Category filter
-      if (filters.category && product.category !== filters.category) {
+      if (filters.category && product.categoryId !== Number(filters.category)) {
         return false;
       }
 
@@ -188,7 +179,7 @@ export default function ProductsPage() {
 
   // Legacy category filter (for backward compatibility)
   const categoryFilteredProducts = filteredProducts.filter(product => 
-    selectedCategory === 'all' || product.category === selectedCategory
+    selectedCategory === 'all' || product.categoryId === selectedCategory
   );
 
   const sortedProducts = [...categoryFilteredProducts].sort((a, b) => {
@@ -287,18 +278,31 @@ export default function ProductsPage() {
 
         {/* Quick Category Bubbles */}
         <div className="flex flex-wrap gap-3 mb-6">
+          <button
+            key="all"
+            onClick={() => setFilters((prev) => ({ ...prev, category: '' }))}
+            className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 ${
+              !filters.category
+                ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white shadow-lg'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
+            }`}
+            aria-pressed={!filters.category}
+          >
+            <ShoppingBag className="w-4 h-4" />
+            All Products
+          </button>
           {categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => setFilters((prev) => ({ ...prev, category: category.id === 'all' ? '' : category.id }))}
+              onClick={() => setFilters((prev) => ({ ...prev, category: String(category.id) }))}
               className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 ${
-                filters.category === category.id || (category.id === 'all' && !filters.category)
-                  ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
+                filters.category === String(category.id)
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
               }`}
-              aria-pressed={filters.category === category.id || (category.id === 'all' && !filters.category)}
+              aria-pressed={filters.category === String(category.id)}
             >
-              <category.icon className="w-4 h-4" />
+              <ShoppingBag className="w-4 h-4" />
               {category.name}
             </button>
           ))}
@@ -332,19 +336,33 @@ export default function ProductsPage() {
                 Quick Categories
               </h3>
               <div className="flex flex-wrap gap-3">
+                <motion.button
+                  key="all"
+                  onClick={() => setSelectedCategory('all')}
+                  className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 ${
+                    selectedCategory === 'all'
+                      ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  All Products
+                </motion.button>
                 {categories.map((category) => (
                   <motion.button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
                     className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 ${
                       selectedCategory === category.id
-                        ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
+                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
                     }`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <category.icon className="w-4 h-4" />
+                    <ShoppingBag className="w-4 h-4" />
                     {category.name}
                   </motion.button>
                 ))}

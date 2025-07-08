@@ -1,15 +1,50 @@
 import nodemailer from 'nodemailer';
 
-// Create transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+// Create transporter with detailed error logging
+const createTransporter = () => {
+  try {
+    console.log('Attempting to create email transporter');
+    console.log('SMTP Host:', process.env.SMTP_HOST);
+    console.log('SMTP Port:', process.env.SMTP_PORT);
+    console.log('SMTP User:', process.env.SMTP_USER ? process.env.SMTP_USER.replace(/./g, '*') : 'Not set');
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+      // Add connection timeout and debug logging
+      connectionTimeout: 10000,
+      debug: true,
+    });
+
+    // Verify transporter connection
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error('Email Transporter Verification Failed:', error);
+      } else {
+        console.log('Email Transporter is ready to send messages');
+      }
+    });
+
+    return transporter;
+  } catch (setupError) {
+    console.error('Failed to set up email transporter:', setupError);
+    throw setupError;
+  }
+};
+
+// Lazy initialization of transporter
+let transporter: nodemailer.Transporter | null = null;
+const getTransporter = () => {
+  if (!transporter) {
+    transporter = createTransporter();
+  }
+  return transporter;
+};
 
 export interface OrderEmailData {
   orderId: number;
@@ -214,49 +249,67 @@ interface VerificationEmailData {
 }
 
 export async function sendVerificationEmail(data: VerificationEmailData) {
-  const { userName, userEmail, token } = data;
-  const verifyUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify/${token}`;
-
-  const emailHtml = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Verify your email - WonderWorks</title>
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-        <h1 style="color: white; margin: 0; font-size: 28px;">WonderWorks</h1>
-        <p style="color: white; margin: 10px 0 0 0; opacity: 0.9;">Verify your email address</p>
-      </div>
-      <div style="background: white; padding: 30px; border: 1px solid #eee; border-top: none; border-radius: 0 0 10px 10px;">
-        <p>Hi ${userName},</p>
-        <p>Thanks for registering with WonderWorks! Please verify your email address by clicking the button below:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${verifyUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: bold;">Verify Email</a>
-        </div>
-        <p>If the button doesn't work, copy and paste the link below into your browser:</p>
-        <p style="word-break: break-all;">${verifyUrl}</p>
-        <p>Thank you for joining WonderWorks!</p>
-      </div>
-    </body>
-    </html>
-  `;
-
   try {
-    await transporter.sendMail({
+    // Validate required environment variables
+    if (!process.env.SMTP_HOST) {
+      throw new Error('SMTP_HOST is not configured');
+    }
+    if (!process.env.SMTP_USER) {
+      throw new Error('SMTP_USER is not configured');
+    }
+    if (!process.env.SMTP_PASS) {
+      throw new Error('SMTP_PASS is not configured');
+    }
+
+    const { userName, userEmail, token } = data;
+    const verifyUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify/${token}`;
+
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Verify your email - WonderWorks</title>
+      </head>
+      <body>
+        <h1>Verify Your Email</h1>
+        <p>Hi ${userName},</p>
+        <p>Click the link to verify your email:</p>
+        <a href="${verifyUrl}">Verify Email</a>
+      </body>
+      </html>
+    `;
+
+    console.log(`Attempting to send verification email to ${userEmail}`);
+
+    const mailOptions = {
       from: `"WonderWorks" <${process.env.SMTP_USER}>`,
       to: userEmail,
       subject: 'Verify your email - WonderWorks',
       html: emailHtml,
-    });
-    console.log(`Verification email sent to ${userEmail}`);
-    // Development: Log the verification URL for easy testing
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔗 Verification URL:', verifyUrl);
-    }
+    };
+
+    // Send email with comprehensive error handling
+    const transporterInstance = getTransporter();
+    const info = await transporterInstance.sendMail(mailOptions);
+    
+    console.log('Verification email sent successfully:', info);
+    return info;
   } catch (error) {
-    console.error('Failed to send verification email:', error);
+    console.error('Comprehensive Email Sending Error:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      emailData: { 
+        to: data.userEmail, 
+        userName: data.userName 
+      },
+      envConfig: {
+        SMTP_HOST: process.env.SMTP_HOST ? 'Configured' : 'Not set',
+        SMTP_USER: process.env.SMTP_USER ? 'Configured' : 'Not set',
+        NEXTAUTH_URL: process.env.NEXTAUTH_URL
+      }
+    });
+    
+    throw error;
   }
 }
 

@@ -43,18 +43,18 @@ export default function ReviewList({ productId, refreshTrigger }: ReviewListProp
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 font-sans">
         {[...Array(3)].map((_, index) => (
-          <div key={index} className="bg-white rounded-xl p-6 border border-gray-200 animate-pulse">
+          <div key={index} className="bg-white rounded-xl p-6 border border-neutral-200 animate-pulse">
             <div className="flex items-center mb-3">
-              <div className="w-8 h-8 bg-gray-200 rounded-full mr-3"></div>
+              <div className="w-8 h-8 bg-neutral-200 rounded-full mr-3"></div>
               <div className="flex-1">
-                <div className="h-4 bg-gray-200 rounded w-24 mb-1"></div>
-                <div className="h-3 bg-gray-200 rounded w-16"></div>
+                <div className="h-4 bg-neutral-200 rounded w-24 mb-1"></div>
+                <div className="h-3 bg-neutral-200 rounded w-16"></div>
               </div>
             </div>
-            <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-neutral-200 rounded w-full mb-2"></div>
+            <div className="h-4 bg-neutral-200 rounded w-3/4"></div>
           </div>
         ))}
       </div>
@@ -66,7 +66,7 @@ export default function ReviewList({ productId, refreshTrigger }: ReviewListProp
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="bg-red-50 border border-red-200 rounded-xl p-6 text-center"
+        className="bg-red-50 border border-red-200 rounded-xl p-6 text-center font-sans"
       >
         <p className="text-red-600">{error}</p>
       </motion.div>
@@ -78,11 +78,11 @@ export default function ReviewList({ productId, refreshTrigger }: ReviewListProp
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gray-50 rounded-xl p-8 text-center"
+        className="bg-neutral-50 rounded-xl p-8 text-center font-sans"
       >
-        <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Reviews Yet</h3>
-        <p className="text-gray-600">
+        <MessageCircle className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-neutral-900 mb-2">No Reviews Yet</h3>
+        <p className="text-neutral-700">
           Be the first to share your experience with this product!
         </p>
       </motion.div>
@@ -90,16 +90,16 @@ export default function ReviewList({ productId, refreshTrigger }: ReviewListProp
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 font-sans">
       {/* Reviews Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-neutral-900">
           Customer Reviews ({reviews.length})
         </h3>
         {reviews.length > 3 && (
           <button
             onClick={() => setShowAll(!showAll)}
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+            className="text-primary-600 hover:text-primary-700 font-medium text-sm"
           >
             {showAll ? 'Show Less' : `Show All ${reviews.length} Reviews`}
           </button>
@@ -116,7 +116,7 @@ export default function ReviewList({ productId, refreshTrigger }: ReviewListProp
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-sm transition-shadow"
+              className="bg-white rounded-xl p-6 border border-neutral-200 hover:shadow-sm transition-shadow"
             >
               {/* Review Header */}
               <div className="flex items-start justify-between mb-3">
@@ -125,8 +125,8 @@ export default function ReviewList({ productId, refreshTrigger }: ReviewListProp
                     {review.author.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{review.author}</p>
-                    <div className="flex items-center text-sm text-gray-500">
+                    <p className="font-medium text-neutral-900">{review.author}</p>
+                    <div className="flex items-center text-sm text-neutral-500">
                       <Calendar className="w-3 h-3 mr-1" />
                       {review.createdAt ? new Date(review.createdAt).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -145,11 +145,11 @@ export default function ReviewList({ productId, refreshTrigger }: ReviewListProp
                       className={`w-4 h-4 ${
                         i < review.rating
                           ? 'text-yellow-400 fill-current'
-                          : 'text-gray-300'
+                          : 'text-neutral-300'
                       }`}
                     />
                   ))}
-                  <span className="ml-2 text-sm font-medium text-gray-900">
+                  <span className="ml-2 text-sm font-medium text-neutral-900">
                     {review.rating}/5
                   </span>
                 </div>
@@ -157,12 +157,12 @@ export default function ReviewList({ productId, refreshTrigger }: ReviewListProp
 
               {/* Review Comment */}
               {review.comment && (
-                <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                <p className="text-neutral-700 leading-relaxed">{review.comment}</p>
               )}
 
               {/* Review Footer */}
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <div className="flex items-center text-xs text-gray-500">
+              <div className="mt-3 pt-3 border-t border-neutral-100">
+                <div className="flex items-center text-xs text-neutral-500">
                   <MessageCircle className="w-3 h-3 mr-1" />
                   Verified Purchase
                 </div>
@@ -181,7 +181,7 @@ export default function ReviewList({ productId, refreshTrigger }: ReviewListProp
         >
           <button
             onClick={() => setShowAll(!showAll)}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-medium transition-colors"
+            className="bg-neutral-100 hover:bg-neutral-200 text-neutral-700 px-6 py-2 rounded-lg font-medium transition-colors"
           >
             {showAll ? 'Show Less' : `Show All ${reviews.length} Reviews`}
           </button>

@@ -14,8 +14,7 @@ import {
   useElements,
 } from '@stripe/react-stripe-js';
 
-// Load Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+// Stripe will be loaded conditionally
 
 // Payment Form Component
 function PaymentForm({ 
@@ -107,6 +106,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'CREDIT_CARD' | 'COD'>('CREDIT_CARD');
   const [codSuccess, setCodSuccess] = useState(false);
+  const [shouldRender, setShouldRender] = useState(true);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -116,10 +116,13 @@ export default function CheckoutPage() {
     }
   }, [session, router]);
 
-  if (cart.itemCount === 0) {
-    if (typeof window !== 'undefined') router.replace('/cart');
-    return null;
-  }
+  // Redirect if cart is empty
+  useEffect(() => {
+    if (cart.itemCount === 0 && typeof window !== 'undefined') {
+      setShouldRender(false);
+      router.replace('/cart');
+    }
+  }, [cart.itemCount, router]);
 
   const subtotal = cart.total;
   const tax = subtotal * 0.08;
@@ -141,7 +144,7 @@ export default function CheckoutPage() {
         
         if (res.ok) {
           // Payment intent created successfully
-          console.log('Payment intent created');
+    
         }
       } catch (error) {
         console.error('Failed to create payment intent:', error);
@@ -187,6 +190,10 @@ export default function CheckoutPage() {
         </div>
       </div>
     );
+  }
+
+  if (!shouldRender) {
+    return null;
   }
 
   if (codSuccess) {
@@ -270,7 +277,7 @@ export default function CheckoutPage() {
             {/* Payment Section */}
             {address.trim() ? (
               paymentMethod === 'CREDIT_CARD' ? (
-                <Elements stripe={stripePromise}>
+                <Elements stripe={loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)}>
                   <PaymentForm 
                     total={total} 
                     address={address} 

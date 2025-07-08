@@ -516,3 +516,13 @@ npm test -- ProductCard.test.tsx
 
 **Last Updated**: January 2025  
 **Status**: Production Ready with Complete Design System ✅ 
+
+## Security & Authentication
+- Prisma middleware ensures all user passwords are always hashed, even via Studio/scripts.
+- Combined login/signup page with Google/Facebook social logins and unified error messages.
+
+## Analytics & Counters
+- All counters and analytics exclude archived/out-of-stock products for accuracy.
+
+## Directory Usage
+- All scripts/commands must be run from `D:\wonderworks\wonderworks`. 

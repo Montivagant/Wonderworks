@@ -67,16 +67,16 @@ export default function ReviewForm({ productId, onReviewSubmitted }: ReviewFormP
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gray-50 rounded-xl p-6 text-center"
+        className="bg-neutral-50 rounded-xl p-6 text-center font-sans"
       >
-        <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Sign in to Review</h3>
-        <p className="text-gray-600 mb-4">
+        <User className="w-12 h-12 text-neutral-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-neutral-900 mb-2">Sign in to Review</h3>
+        <p className="text-neutral-700 mb-4">
           Please sign in to share your experience with this product
         </p>
         <button
           onClick={() => window.location.href = '/login'}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium"
         >
           Sign In
         </button>
@@ -88,14 +88,14 @@ export default function ReviewForm({ productId, onReviewSubmitted }: ReviewFormP
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl p-6 border border-gray-200"
+      className="bg-white rounded-xl p-6 border border-neutral-200 font-sans"
     >
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Write a Review</h3>
+      <h3 className="text-lg font-semibold text-neutral-900 mb-4">Write a Review</h3>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Rating Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-neutral-700 mb-2">
             Your Rating
           </label>
           <div className="flex items-center space-x-1">
@@ -114,12 +114,12 @@ export default function ReviewForm({ productId, onReviewSubmitted }: ReviewFormP
                   className={`w-8 h-8 ${
                     star <= (hoveredRating || rating)
                       ? 'text-yellow-400 fill-current'
-                      : 'text-gray-300'
+                      : 'text-neutral-300'
                   }`}
                 />
               </motion.button>
             ))}
-            <span className="ml-2 text-sm text-gray-600">
+            <span className="ml-2 text-sm text-neutral-700">
               {rating > 0 && `${rating} star${rating > 1 ? 's' : ''}`}
             </span>
           </div>
@@ -127,7 +127,7 @@ export default function ReviewForm({ productId, onReviewSubmitted }: ReviewFormP
 
         {/* Comment Input */}
         <div>
-          <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="comment" className="block text-sm font-medium text-neutral-700 mb-2">
             Your Review (Optional)
           </label>
           <textarea
@@ -135,10 +135,10 @@ export default function ReviewForm({ productId, onReviewSubmitted }: ReviewFormP
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Share your experience with this product..."
-            className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+            className="w-full h-32 px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
             maxLength={500}
           />
-          <div className="text-xs text-gray-500 mt-1 text-right">
+          <div className="text-xs text-neutral-500 mt-1 text-right">
             {comment.length}/500 characters
           </div>
         </div>
@@ -149,8 +149,8 @@ export default function ReviewForm({ productId, onReviewSubmitted }: ReviewFormP
           disabled={isSubmitting || rating === 0}
           className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
             isSubmitting || rating === 0
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 active:scale-95'
+              ? 'bg-neutral-300 text-neutral-500 cursor-not-allowed'
+              : 'bg-gradient-to-r from-primary-600 to-primary-400 text-white hover:from-primary-700 hover:to-primary-500 active:scale-95'
           }`}
           whileHover={!isSubmitting && rating > 0 ? { scale: 1.02 } : {}}
           whileTap={!isSubmitting && rating > 0 ? { scale: 0.98 } : {}}

@@ -14,6 +14,7 @@ model Product {
   image       String?
   rating      Float     @default(0)
   description String?
+  stock       Int       @default(0)
   inStock     Boolean   @default(true)
   featured    Boolean   @default(false)
   images      ProductImage[]
@@ -25,6 +26,11 @@ model Product {
   categoryId  Int?
   category    Category? @relation(fields: [categoryId], references: [id])
   createdAt   DateTime  @default(now())
+  isFlashDeal Boolean   @default(false)
+  isRecommended Boolean @default(false)
+  flashDealEndTime DateTime?
+  originalPrice Float?
+  archived    Boolean   @default(false)
 }
 
 model ProductImage {
@@ -69,12 +75,13 @@ model User {
 
 model Order {
   id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
   total     Float
   status    OrderStatus @default(PENDING)
   paymentMethod PaymentMethod @default(COD)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   items     OrderItem[]
 }
 
@@ -93,7 +100,7 @@ model OrderItem {
 // --------------------------------------------------
 model Cart {
   id        Int       @id @default(autoincrement())
-  user      User      @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int       @unique
   items     CartItem[]
   createdAt DateTime  @default(now())
@@ -117,7 +124,7 @@ model CartItem {
 // --------------------------------------------------
 model Wishlist {
   id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int      @unique
   items     WishlistItem[]
   createdAt DateTime @default(now())
@@ -140,7 +147,7 @@ model WishlistItem {
 // --------------------------------------------------
 model Address {
   id          Int      @id @default(autoincrement())
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
   type        AddressType @default(HOME)
   firstName   String
@@ -161,7 +168,7 @@ model Address {
 model VerificationToken {
   id Int @id @default(autoincrement())
   token String @unique
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
   expires DateTime
 }
@@ -169,7 +176,7 @@ model VerificationToken {
 model PasswordResetToken {
   id Int @id @default(autoincrement())
   token String @unique
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
   expires DateTime
 }
@@ -192,7 +199,7 @@ model Account {
   id_token           String?
   session_state      String?
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -203,7 +210,7 @@ model Session {
   userId        Int
   expires       DateTime
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum UserRole {
