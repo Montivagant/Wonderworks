@@ -260,9 +260,9 @@ export default function ProductManagement() {
     if (selectedProducts.length === 0) return;
     setLoading(true);
     try {
-      let url = '/api/admin/products/bulk';
-      let method = 'POST';
-      let body: any = { ids: selectedProducts, action };
+      const url = '/api/admin/products/bulk';
+      const method = 'POST';
+      const body: any = { ids: selectedProducts, action };
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },

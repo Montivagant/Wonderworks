@@ -78,9 +78,9 @@ export default function OrderManagement() {
     if (selectedOrders.length === 0) return;
     setIsUpdating(true);
     try {
-      let url = '/api/admin/orders/bulk';
-      let method = 'POST';
-      let body: any = { ids: selectedOrders, action };
+      const url = '/api/admin/orders/bulk';
+      const method = 'POST';
+      const body: any = { ids: selectedOrders, action };
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },

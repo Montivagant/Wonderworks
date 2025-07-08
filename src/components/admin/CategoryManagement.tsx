@@ -66,9 +66,9 @@ export default function CategoryManagement() {
     if (selectedCategories.length === 0) return;
     setLoading(true);
     try {
-      let url = '/api/admin/categories/bulk';
-      let method = 'POST';
-      let body: any = { ids: selectedCategories, action: 'delete' };
+      const url = '/api/admin/categories/bulk';
+      const method = 'POST';
+      const body: any = { ids: selectedCategories, action: 'delete' };
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },

@@ -106,9 +106,9 @@ export default function UserManagement() {
   const handleBulkAction = async (action: 'delete' | 'makeAdmin' | 'makeCustomer') => {
     if (selectedUsers.length === 0) return;
     try {
-      let url = '/api/admin/users/bulk';
-      let method = 'POST';
-      let body: any = { ids: selectedUsers, action };
+      const url = '/api/admin/users/bulk';
+      const method = 'POST';
+      const body: any = { ids: selectedUsers, action };
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
